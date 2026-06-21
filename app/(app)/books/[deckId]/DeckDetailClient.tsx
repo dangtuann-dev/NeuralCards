@@ -3,8 +3,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Plus, X, Loader2, BookOpen, Volume2, Sparkles } from 'lucide-react';
-import { addWordToDeck, lookupWord } from '@/actions/books';
+import { ArrowLeft, Plus, X, Loader2, BookOpen, Volume2, Sparkles, Edit2, Trash2 } from 'lucide-react';
+import { addWordToDeck, lookupWord, updateWordInDeck, deleteWordFromDeck } from '@/actions/books';
 import { toast } from 'sonner';
 
 interface Deck {
@@ -45,6 +45,8 @@ const POS_MAP: Record<string, { label: string; color: string }> = {
 export default function DeckDetailClient({ deck, initialCards }: DeckDetailClientProps) {
   const router = useRouter();
   const [modalOpen, setModalOpen] = useState(false);
+  const [editingWord, setEditingWord] = useState<CardWord | null>(null);
+
   const [term, setTerm] = useState('');
   const [phonetic, setPhonetic] = useState('');
   const [partOfSpeech, setPartOfSpeech] = useState<CardWord['partOfSpeech']>('noun');
@@ -62,6 +64,47 @@ export default function DeckDetailClient({ deck, initialCards }: DeckDetailClien
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.lang = 'en-US';
       window.speechSynthesis.speak(utterance);
+    }
+  };
+
+  const handleOpenCreateModal = () => {
+    setEditingWord(null);
+    setTerm('');
+    setPhonetic('');
+    setPartOfSpeech('noun');
+    setDefinition('');
+    setDefinitionVi('');
+    setExampleSentence('');
+    setExampleSentenceVi('');
+    setModalOpen(true);
+  };
+
+  const handleOpenEditModal = (word: CardWord) => {
+    setEditingWord(word);
+    setTerm(word.term);
+    setPhonetic(word.phonetic || '');
+    setPartOfSpeech(word.partOfSpeech || 'noun');
+    setDefinition(word.definition);
+    setDefinitionVi(word.definitionVi || '');
+    setExampleSentence(word.exampleSentence || '');
+    setExampleSentenceVi(word.exampleSentenceVi || '');
+    setModalOpen(true);
+  };
+
+  const handleDeleteWord = async (wordId: string) => {
+    if (confirm('Bạn có chắc chắn muốn xóa từ vựng này không?')) {
+      const toastId = toast.loading('Đang xóa từ vựng...');
+      try {
+        const res = await deleteWordFromDeck(wordId);
+        if (res.success) {
+          toast.success('Xóa từ vựng thành công!', { id: toastId });
+          router.refresh();
+        } else {
+          toast.error(res.error || 'Lỗi khi xóa từ vựng', { id: toastId });
+        }
+      } catch {
+        toast.error('Lỗi kết nối khi xóa từ vựng', { id: toastId });
+      }
     }
   };
 
@@ -98,30 +141,54 @@ export default function DeckDetailClient({ deck, initialCards }: DeckDetailClien
 
     setLoading(true);
     try {
-      const res = await addWordToDeck({
-        lessonId: deck.id,
-        term: term.trim(),
-        phonetic: phonetic.trim(),
-        partOfSpeech: partOfSpeech || 'noun',
-        definition: definition.trim(),
-        definitionVi: definitionVi.trim(),
-        exampleSentence: exampleSentence.trim(),
-        exampleSentenceVi: exampleSentenceVi.trim(),
-      });
+      if (editingWord) {
+        // Edit flow
+        const res = await updateWordInDeck(editingWord.id, {
+          lessonId: deck.id,
+          term: term.trim(),
+          phonetic: phonetic.trim(),
+          partOfSpeech: partOfSpeech || 'noun',
+          definition: definition.trim(),
+          definitionVi: definitionVi.trim(),
+          exampleSentence: exampleSentence.trim(),
+          exampleSentenceVi: exampleSentenceVi.trim(),
+        });
 
-      if (res.success) {
-        toast.success('Thêm từ vựng mới thành công! 🃏');
-        setTerm('');
-        setPhonetic('');
-        setPartOfSpeech('noun');
-        setDefinition('');
-        setDefinitionVi('');
-        setExampleSentence('');
-        setExampleSentenceVi('');
-        setModalOpen(false);
-        router.refresh();
+        if (res.success) {
+          toast.success('Cập nhật từ vựng thành công! 🃏');
+          setModalOpen(false);
+          setEditingWord(null);
+          router.refresh();
+        } else {
+          toast.error(res.error || 'Có lỗi xảy ra khi cập nhật từ');
+        }
       } else {
-        toast.error(res.error || 'Có lỗi xảy ra khi thêm từ');
+        // Create flow
+        const res = await addWordToDeck({
+          lessonId: deck.id,
+          term: term.trim(),
+          phonetic: phonetic.trim(),
+          partOfSpeech: partOfSpeech || 'noun',
+          definition: definition.trim(),
+          definitionVi: definitionVi.trim(),
+          exampleSentence: exampleSentence.trim(),
+          exampleSentenceVi: exampleSentenceVi.trim(),
+        });
+
+        if (res.success) {
+          toast.success('Thêm từ vựng mới thành công! 🃏');
+          setTerm('');
+          setPhonetic('');
+          setPartOfSpeech('noun');
+          setDefinition('');
+          setDefinitionVi('');
+          setExampleSentence('');
+          setExampleSentenceVi('');
+          setModalOpen(false);
+          router.refresh();
+        } else {
+          toast.error(res.error || 'Có lỗi xảy ra khi thêm từ');
+        }
       }
     } catch {
       toast.error('Không thể kết nối đến máy chủ');
@@ -156,7 +223,7 @@ export default function DeckDetailClient({ deck, initialCards }: DeckDetailClien
               {deck.description || 'Không có mô tả cho bộ từ này.'}
             </p>
             <div className="mt-3 flex flex-wrap gap-2">
-              <span className="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/30 px-3 py-1 rounded-full">
+              <span className="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-650 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/30 px-3 py-1 rounded-full">
                 <BookOpen className="h-3.5 w-3.5" />
                 {initialCards.length} thẻ từ vựng
               </span>
@@ -166,8 +233,8 @@ export default function DeckDetailClient({ deck, initialCards }: DeckDetailClien
 
         <button
           type="button"
-          onClick={() => setModalOpen(true)}
-          className="flex items-center justify-center gap-2 py-2.5 px-5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg shadow-indigo-600/10 hover:shadow-indigo-600/20 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer md:w-auto w-full"
+          onClick={handleOpenCreateModal}
+          className="flex items-center justify-center gap-2 py-2.5 px-5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg shadow-indigo-600/10 hover:shadow-indigo-600/20 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer md:w-auto w-full border-0"
         >
           <Plus className="h-5 w-5" />
           Thêm từ mới
@@ -217,11 +284,34 @@ export default function DeckDetailClient({ deck, initialCards }: DeckDetailClien
                         </p>
                       )}
                     </div>
-                    {pos && (
-                      <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${pos.color}`}>
-                        {pos.label}
-                      </span>
-                    )}
+
+                    <div className="flex items-center gap-2 shrink-0">
+                      {pos && (
+                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${pos.color}`}>
+                          {pos.label}
+                        </span>
+                      )}
+                      
+                      {/* Action buttons (Edit & Delete Card) */}
+                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-50 dark:bg-slate-800 p-1 rounded-xl shadow-sm border border-slate-100 dark:border-slate-800">
+                        <button
+                          type="button"
+                          onClick={() => handleOpenEditModal(card)}
+                          className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 hover:text-slate-800 dark:hover:text-white transition-colors cursor-pointer border-0"
+                          title="Sửa từ vựng"
+                        >
+                          <Edit2 className="h-3.5 w-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteWord(card.id)}
+                          className="p-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 text-slate-500 hover:text-red-650 dark:hover:text-red-450 transition-colors cursor-pointer border-0"
+                          title="Xóa từ vựng"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    </div>
                   </div>
 
                   <div className="space-y-2 text-sm border-t border-slate-100 dark:border-slate-800 pt-3">
@@ -229,7 +319,7 @@ export default function DeckDetailClient({ deck, initialCards }: DeckDetailClien
                       <span className="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">Định nghĩa</span>
                       <p className="text-slate-800 dark:text-slate-200 font-medium">{card.definition}</p>
                       {card.definitionVi && (
-                        <p className="text-slate-500 dark:text-slate-450 mt-0.5 text-xs">{card.definitionVi}</p>
+                        <p className="text-slate-550 dark:text-slate-400 mt-0.5 text-xs">{card.definitionVi}</p>
                       )}
                     </div>
 
@@ -238,7 +328,7 @@ export default function DeckDetailClient({ deck, initialCards }: DeckDetailClien
                         <span className="text-[9px] uppercase font-bold text-slate-400 block tracking-wider">Ví dụ</span>
                         <p className="text-slate-700 dark:text-slate-350 italic font-sans">&ldquo;{card.exampleSentence}&rdquo;</p>
                         {card.exampleSentenceVi && (
-                          <p className="text-slate-500 dark:text-slate-450 mt-0.5 text-xs">{card.exampleSentenceVi}</p>
+                          <p className="text-slate-550 dark:text-slate-400 mt-0.5 text-xs">{card.exampleSentenceVi}</p>
                         )}
                       </div>
                     )}
@@ -250,7 +340,7 @@ export default function DeckDetailClient({ deck, initialCards }: DeckDetailClien
         )}
       </div>
 
-      {/* ── Add Word Modal ── */}
+      {/* ── Add / Edit Word Modal ── */}
       <AnimatePresence>
         {modalOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
@@ -273,16 +363,16 @@ export default function DeckDetailClient({ deck, initialCards }: DeckDetailClien
               <button
                 type="button"
                 onClick={() => setModalOpen(false)}
-                className="absolute top-4 right-4 p-1.5 rounded-xl hover:bg-slate-150 dark:hover:bg-slate-800 text-slate-500 hover:text-slate-800 dark:hover:text-white transition-colors"
+                className="absolute top-4 right-4 p-1.5 rounded-xl hover:bg-slate-150 dark:hover:bg-slate-800 text-slate-500 hover:text-slate-800 dark:hover:text-white transition-colors border-0 cursor-pointer"
               >
                 <X className="h-5 w-5" />
               </button>
 
               <h2 className="text-xl font-bold text-slate-900 dark:text-white font-heading">
-                Thêm từ vựng mới 🃏
+                {editingWord ? 'Chỉnh sửa từ vựng ✏️' : 'Thêm từ vựng mới 🃏'}
               </h2>
               <p className="text-xs text-slate-500 mt-1">
-                Tạo thẻ từ ghi nhớ, hệ thống sẽ tự động xếp vào hàng đợi học tập hàng ngày.
+                {editingWord ? 'Cập nhật lại định nghĩa, từ loại hoặc ví dụ của từ vựng này.' : 'Tạo thẻ từ ghi nhớ, hệ thống sẽ tự động xếp vào hàng đợi học tập hàng ngày.'}
               </p>
 
               <form onSubmit={handleSubmit} className="mt-6 space-y-4">
@@ -418,13 +508,15 @@ export default function DeckDetailClient({ deck, initialCards }: DeckDetailClien
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg shadow-indigo-600/10 hover:shadow-indigo-600/20 active:scale-[0.98] disabled:opacity-50 transition-all cursor-pointer flex items-center justify-center gap-2 mt-6"
+                  className="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg shadow-indigo-600/10 hover:shadow-indigo-600/20 active:scale-[0.98] disabled:opacity-50 transition-all cursor-pointer flex items-center justify-center gap-2 mt-6 border-0"
                 >
                   {loading ? (
                     <>
                       <Loader2 className="h-5 w-5 animate-spin" />
                       Đang xử lý...
                     </>
+                  ) : editingWord ? (
+                    'Lưu thay đổi'
                   ) : (
                     'Thêm từ vựng'
                   )}

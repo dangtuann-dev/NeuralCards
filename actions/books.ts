@@ -182,3 +182,119 @@ export async function lookupWord(word: string) {
   }
 }
 
+export async function updateDeck(deckId: string, data: z.infer<typeof deckSchema>) {
+  const session = await auth();
+  if (!session?.user?.id) return { success: false, error: 'Bạn phải đăng nhập để cập nhật bộ từ' };
+  const userId = session.user.id;
+
+  try {
+    const validated = deckSchema.parse(data);
+    
+    const existing = await db.query.lessons.findFirst({
+      where: and(eq(lessons.id, deckId), eq(lessons.userId, userId)),
+    });
+    if (!existing) return { success: false, error: 'Không tìm thấy bộ từ hoặc bạn không có quyền chỉnh sửa' };
+
+    await db.update(lessons).set({
+      title: validated.title,
+      description: validated.description || '',
+      coverEmoji: validated.coverEmoji,
+      updatedAt: new Date(),
+    }).where(eq(lessons.id, deckId));
+
+    revalidatePath('/books');
+    revalidatePath(`/books/${deckId}`);
+    return { success: true };
+  } catch (error: any) {
+    return { success: false, error: error.message || 'Lỗi khi cập nhật bộ từ' };
+  }
+}
+
+export async function deleteDeck(deckId: string) {
+  const session = await auth();
+  if (!session?.user?.id) return { success: false, error: 'Bạn phải đăng nhập để xóa bộ từ' };
+  const userId = session.user.id;
+
+  try {
+    const existing = await db.query.lessons.findFirst({
+      where: and(eq(lessons.id, deckId), eq(lessons.userId, userId)),
+    });
+    if (!existing) return { success: false, error: 'Không tìm thấy bộ từ hoặc bạn không có quyền xóa' };
+
+    await db.delete(lessons).where(eq(lessons.id, deckId));
+
+    revalidatePath('/books');
+    return { success: true };
+  } catch (error: any) {
+    return { success: false, error: error.message || 'Lỗi khi xóa bộ từ' };
+  }
+}
+
+export async function updateWordInDeck(wordId: string, data: z.infer<typeof wordSchema>) {
+  const session = await auth();
+  if (!session?.user?.id) return { success: false, error: 'Bạn phải đăng nhập để cập nhật từ vựng' };
+  const userId = session.user.id;
+
+  try {
+    const validated = wordSchema.parse(data);
+
+    const word = await db.query.words.findFirst({
+      where: eq(words.id, wordId),
+    });
+    if (!word) return { success: false, error: 'Không tìm thấy từ vựng' };
+
+    const deck = await db.query.lessons.findFirst({
+      where: and(eq(lessons.id, word.lessonId), eq(lessons.userId, userId)),
+    });
+    if (!deck) return { success: false, error: 'Bạn không có quyền chỉnh sửa từ vựng này' };
+
+    await db.update(words).set({
+      term: validated.term,
+      phonetic: validated.phonetic || '',
+      partOfSpeech: validated.partOfSpeech,
+      definition: validated.definition,
+      definitionVi: validated.definitionVi || '',
+      exampleSentence: validated.exampleSentence || '',
+      exampleSentenceVi: validated.exampleSentenceVi || '',
+      updatedAt: new Date(),
+    }).where(eq(words.id, wordId));
+
+    revalidatePath(`/books/${word.lessonId}`);
+    return { success: true };
+  } catch (error: any) {
+    return { success: false, error: error.message || 'Lỗi khi cập nhật từ vựng' };
+  }
+}
+
+export async function deleteWordFromDeck(wordId: string) {
+  const session = await auth();
+  if (!session?.user?.id) return { success: false, error: 'Bạn phải đăng nhập để xóa từ vựng' };
+  const userId = session.user.id;
+
+  try {
+    const word = await db.query.words.findFirst({
+      where: eq(words.id, wordId),
+    });
+    if (!word) return { success: false, error: 'Không tìm thấy từ vựng' };
+
+    const deck = await db.query.lessons.findFirst({
+      where: and(eq(lessons.id, word.lessonId), eq(lessons.userId, userId)),
+    });
+    if (!deck) return { success: false, error: 'Bạn không có quyền xóa từ vựng này' };
+
+    await db.delete(words).where(eq(words.id, wordId));
+
+    await db.update(lessons).set({
+      wordCount: Math.max(0, deck.wordCount - 1),
+      updatedAt: new Date(),
+    }).where(eq(lessons.id, word.lessonId));
+
+    revalidatePath(`/books/${word.lessonId}`);
+    revalidatePath('/books');
+    revalidatePath('/dashboard');
+    return { success: true };
+  } catch (error: any) {
+    return { success: false, error: error.message || 'Lỗi khi xóa từ vựng' };
+  }
+}
+
