@@ -39,7 +39,7 @@ export default auth(async (req: NextRequest & { auth: Session | null }) => {
 
   // Protect app routes
   const isAppRoute = pathname.startsWith('/(app)') || 
-    ['/dashboard', '/books', '/lessons', '/games', '/progress', '/review', '/settings', '/notifications'].some(p => pathname.startsWith(p));
+    ['/dashboard', '/books', '/lessons', '/games', '/progress', '/review', '/settings', '/notifications', '/onboarding'].some(p => pathname.startsWith(p));
   
   const isAdminRoute = pathname.startsWith('/admin');
   const isAuthRoute = ['/login', '/register', '/forgot-password'].includes(pathname);
@@ -53,6 +53,11 @@ export default auth(async (req: NextRequest & { auth: Session | null }) => {
     
     if (isAuthRoute) {
       return NextResponse.redirect(new URL(onboardingCompleted ? '/dashboard' : '/onboarding', req.url));
+    }
+    
+    // If already onboarded and trying to access onboarding page, redirect to dashboard
+    if (onboardingCompleted && pathname === '/onboarding') {
+      return NextResponse.redirect(new URL('/dashboard', req.url));
     }
     
     // If not onboarded and trying to access general app/admin routes (excluding onboarding itself), redirect to onboarding
