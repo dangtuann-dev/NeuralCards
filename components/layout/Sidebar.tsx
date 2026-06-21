@@ -167,7 +167,7 @@ export default function Sidebar({ onCloseMobile, userStats = { dailyGoal: 10, wo
         </div>
 
         {/* Mini stats badges */}
-        <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100 dark:border-slate-850">
+        <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
           <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300">
             <Flame className="h-4 w-4 text-orange-500 fill-orange-500" />
             <span>{userStats.streakDays} ngày</span>
@@ -182,7 +182,7 @@ export default function Sidebar({ onCloseMobile, userStats = { dailyGoal: 10, wo
       {/* Bottom Section: Profile Dropdown */}
       <div className="border-t border-slate-100 dark:border-slate-800 pt-4">
         <DropdownMenu>
-          <DropdownMenuTrigger className="w-full flex items-center justify-between p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-850 transition-colors text-left focus:outline-none cursor-pointer">
+          <DropdownMenuTrigger className="w-full flex items-center justify-between p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-left focus:outline-none cursor-pointer">
             <div className="flex items-center gap-3">
               <Avatar className="h-9 w-9 border border-indigo-100 dark:border-indigo-950">
                 <AvatarImage src={user?.image || undefined} />

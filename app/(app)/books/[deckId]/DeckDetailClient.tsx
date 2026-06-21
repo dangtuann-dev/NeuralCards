@@ -120,7 +120,7 @@ export default function DeckDetailClient({ deck, initialCards }: DeckDetailClien
       {/* ── Deck Header ── */}
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800/80 rounded-3xl p-6 sm:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-sm">
         <div className="flex items-start sm:items-center gap-4">
-          <div className="text-5xl p-3 bg-slate-50 dark:bg-slate-850/50 rounded-2xl shrink-0">
+          <div className="text-5xl p-3 bg-slate-50 dark:bg-slate-800/50 rounded-2xl shrink-0">
             {deck.coverEmoji || '📚'}
           </div>
           <div>
@@ -181,7 +181,7 @@ export default function DeckDetailClient({ deck, initialCards }: DeckDetailClien
                         <button
                           type="button"
                           onClick={() => speakWord(card.term)}
-                          className="p-1 rounded-lg text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-50 dark:hover:bg-slate-850 transition-colors cursor-pointer bg-transparent border-0"
+                          className="p-1 rounded-lg text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer bg-transparent border-0"
                         >
                           <Volume2 className="h-4 w-4" />
                         </button>
@@ -199,17 +199,17 @@ export default function DeckDetailClient({ deck, initialCards }: DeckDetailClien
                     )}
                   </div>
 
-                  <div className="space-y-2 text-sm border-t border-slate-100 dark:border-slate-850 pt-3">
+                  <div className="space-y-2 text-sm border-t border-slate-100 dark:border-slate-800 pt-3">
                     <div>
                       <span className="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">Định nghĩa</span>
-                      <p className="text-slate-850 dark:text-slate-200 font-medium">{card.definition}</p>
+                      <p className="text-slate-800 dark:text-slate-200 font-medium">{card.definition}</p>
                       {card.definitionVi && (
                         <p className="text-slate-500 dark:text-slate-450 mt-0.5 text-xs">{card.definitionVi}</p>
                       )}
                     </div>
 
                     {card.exampleSentence && (
-                      <div className="bg-slate-50 dark:bg-slate-850/50 p-3 rounded-xl mt-2">
+                      <div className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl mt-2">
                         <span className="text-[9px] uppercase font-bold text-slate-400 block tracking-wider">Ví dụ</span>
                         <p className="text-slate-700 dark:text-slate-350 italic font-sans">&ldquo;{card.exampleSentence}&rdquo;</p>
                         {card.exampleSentenceVi && (
@@ -273,7 +273,7 @@ export default function DeckDetailClient({ deck, initialCards }: DeckDetailClien
                       value={term}
                       onChange={(e) => setTerm(e.target.value)}
                       placeholder="Ví dụ: meticulous"
-                      className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-slate-900 dark:text-white transition-all text-sm"
+                      className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-slate-900 dark:text-white transition-all text-sm"
                     />
                   </div>
 
@@ -287,7 +287,7 @@ export default function DeckDetailClient({ deck, initialCards }: DeckDetailClien
                       value={phonetic}
                       onChange={(e) => setPhonetic(e.target.value)}
                       placeholder="Ví dụ: /məˈtɪkyələs/"
-                      className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-slate-900 dark:text-white transition-all text-sm"
+                      className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-slate-900 dark:text-white transition-all text-sm"
                     />
                   </div>
                 </div>
@@ -300,7 +300,7 @@ export default function DeckDetailClient({ deck, initialCards }: DeckDetailClien
                   <select
                     value={partOfSpeech || 'noun'}
                     onChange={(e) => setPartOfSpeech(e.target.value as CardWord['partOfSpeech'])}
-                    className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-slate-900 dark:text-white transition-all text-sm cursor-pointer"
+                    className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-slate-900 dark:text-white transition-all text-sm cursor-pointer"
                   >
                     <option value="noun">Danh từ (Noun)</option>
                     <option value="verb">Động từ (Verb)</option>
@@ -325,7 +325,7 @@ export default function DeckDetailClient({ deck, initialCards }: DeckDetailClien
                       onChange={(e) => setDefinition(e.target.value)}
                       placeholder="Ví dụ: very careful and precise"
                       rows={2}
-                      className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-slate-900 dark:text-white transition-all text-sm resize-none"
+                      className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-slate-900 dark:text-white transition-all text-sm resize-none"
                     />
                   </div>
 
@@ -339,7 +339,7 @@ export default function DeckDetailClient({ deck, initialCards }: DeckDetailClien
                       onChange={(e) => setDefinitionVi(e.target.value)}
                       placeholder="Ví dụ: tỉ mỉ, kỹ càng"
                       rows={2}
-                      className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-slate-900 dark:text-white transition-all text-sm resize-none"
+                      className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-slate-900 dark:text-white transition-all text-sm resize-none"
                     />
                   </div>
                 </div>
@@ -355,7 +355,7 @@ export default function DeckDetailClient({ deck, initialCards }: DeckDetailClien
                       onChange={(e) => setExampleSentence(e.target.value)}
                       placeholder="Ví dụ: He was meticulous in his preparation."
                       rows={2}
-                      className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-slate-900 dark:text-white transition-all text-sm resize-none"
+                      className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-slate-900 dark:text-white transition-all text-sm resize-none"
                     />
                   </div>
 
@@ -369,7 +369,7 @@ export default function DeckDetailClient({ deck, initialCards }: DeckDetailClien
                       onChange={(e) => setExampleSentenceVi(e.target.value)}
                       placeholder="Ví dụ: Anh ấy đã chuẩn bị rất tỉ mỉ."
                       rows={2}
-                      className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-slate-900 dark:text-white transition-all text-sm resize-none"
+                      className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-slate-900 dark:text-white transition-all text-sm resize-none"
                     />
                   </div>
                 </div>

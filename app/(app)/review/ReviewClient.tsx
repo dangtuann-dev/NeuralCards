@@ -149,7 +149,7 @@ export default function ReviewClient({ initialCards }: ReviewClientProps) {
           {/* Card Front */}
           <div className="w-full h-full absolute backface-hidden bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800/80 rounded-3xl p-8 flex flex-col justify-between shadow-xl">
             <div className="flex justify-between items-start">
-              <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 bg-slate-50 dark:bg-slate-850 px-2.5 py-1 rounded-md">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 bg-slate-50 dark:bg-slate-800 px-2.5 py-1 rounded-md">
                 {word.partOfSpeech ? POS_LABELS[word.partOfSpeech] : 'Từ vựng'}
               </span>
               <button
@@ -158,7 +158,7 @@ export default function ReviewClient({ initialCards }: ReviewClientProps) {
                   e.stopPropagation();
                   speakWord(word.term);
                 }}
-                className="p-2 rounded-xl text-slate-400 hover:text-indigo-600 hover:bg-slate-50 dark:hover:bg-slate-850 transition-colors cursor-pointer"
+                className="p-2 rounded-xl text-slate-400 hover:text-indigo-600 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
               >
                 <Volume2 className="h-5 w-5" />
               </button>
@@ -191,7 +191,7 @@ export default function ReviewClient({ initialCards }: ReviewClientProps) {
                 <button
                   type="button"
                   onClick={() => speakWord(word.term)}
-                  className="p-1 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-slate-50 dark:hover:bg-slate-850 cursor-pointer"
+                  className="p-1 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer"
                 >
                   <Volume2 className="h-4 w-4" />
                 </button>
@@ -211,7 +211,7 @@ export default function ReviewClient({ initialCards }: ReviewClientProps) {
               </div>
 
               {word.exampleSentence && (
-                <div className="bg-slate-50 dark:bg-slate-850/50 p-3 rounded-xl border border-slate-100 dark:border-slate-800">
+                <div className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl border border-slate-100 dark:border-slate-800">
                   <span className="text-[8px] uppercase font-bold text-slate-400 block tracking-wider">Câu ví dụ</span>
                   <p className="text-slate-700 dark:text-slate-350 italic text-xs">&ldquo;{word.exampleSentence}&rdquo;</p>
                   {word.exampleSentenceVi && (

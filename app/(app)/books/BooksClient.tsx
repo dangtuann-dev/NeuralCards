@@ -115,7 +115,7 @@ export default function BooksClient({ decks }: BooksClientProps) {
                 className="h-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800/80 rounded-2xl p-5 shadow-sm hover:shadow-xl group-hover:border-indigo-500/30 dark:group-hover:border-indigo-400/20 transition-all flex flex-col justify-between"
               >
                 <div>
-                  <div className="text-4xl p-2 bg-slate-50 dark:bg-slate-850/50 rounded-2xl w-fit mb-4">
+                  <div className="text-4xl p-2 bg-slate-50 dark:bg-slate-800/50 rounded-2xl w-fit mb-4">
                     {deck.coverEmoji || '📚'}
                   </div>
                   <h3 className="font-extrabold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors line-clamp-1">
@@ -188,7 +188,7 @@ export default function BooksClient({ decks }: BooksClientProps) {
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     placeholder="Ví dụ: Từ vựng IELTS Reading Cam 18"
-                    className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-slate-900 dark:text-white transition-all text-sm"
+                    className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-slate-900 dark:text-white transition-all text-sm"
                   />
                 </div>
 
@@ -202,7 +202,7 @@ export default function BooksClient({ decks }: BooksClientProps) {
                     onChange={(e) => setDescription(e.target.value)}
                     placeholder="Mô tả ngắn gọn về nguồn từ vựng hoặc mục đích học..."
                     rows={3}
-                    className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-slate-900 dark:text-white transition-all text-sm resize-none"
+                    className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-slate-900 dark:text-white transition-all text-sm resize-none"
                   />
                 </div>
 
@@ -220,7 +220,7 @@ export default function BooksClient({ decks }: BooksClientProps) {
                         className={`text-2xl p-1.5 rounded-xl border-2 transition-all cursor-pointer ${
                           coverEmoji === emoji
                             ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-950/40 scale-105'
-                            : 'border-transparent bg-slate-50 hover:bg-slate-100 dark:bg-slate-850 dark:hover:bg-slate-800'
+                            : 'border-transparent bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-750'
                         }`}
                       >
                         {emoji}
