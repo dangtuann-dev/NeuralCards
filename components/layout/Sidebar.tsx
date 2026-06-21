@@ -103,7 +103,7 @@ export default function Sidebar({ onCloseMobile, userStats = { dailyGoal: 10, wo
                 onClick={onCloseMobile}
                 className={`flex items-center justify-between px-3.5 py-3 rounded-xl font-semibold text-sm transition-all group relative cursor-pointer ${
                   isActive
-                    ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-50/70 dark:bg-indigo-950/30'
+                    ? 'text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-800 font-bold'
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/50'
                 }`}
               >

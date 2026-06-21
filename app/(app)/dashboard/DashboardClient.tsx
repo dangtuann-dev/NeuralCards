@@ -74,25 +74,22 @@ export default function DashboardClient({ user, stats, recentWords, activityData
       desc: `${stats.wordsToReview} thẻ đến hạn ôn`,
       icon: Layers,
       href: '/review',
-      accent: 'indigo',
       badge: stats.wordsToReview > 0 ? String(stats.wordsToReview) : undefined,
-      gradient: 'from-indigo-500 to-indigo-600',
+      gradient: 'from-slate-800 to-slate-900',
     },
     {
-      title: 'Cambridge IELTS',
-      desc: 'Học từ vựng theo bài',
+      title: 'Bộ từ vựng',
+      desc: 'Học từ vựng theo bộ',
       icon: BookOpen,
       href: '/books',
-      accent: 'emerald',
-      gradient: 'from-emerald-500 to-teal-600',
+      gradient: 'from-slate-600 to-slate-800',
     },
     {
       title: 'Mini-games',
       desc: 'Luyện tập tương tác',
       icon: Gamepad2,
       href: '/games',
-      accent: 'violet',
-      gradient: 'from-violet-500 to-purple-600',
+      gradient: 'from-slate-500 to-slate-700',
     },
   ];
 
@@ -121,11 +118,11 @@ export default function DashboardClient({ user, stats, recentWords, activityData
         </div>
 
         {/* Streak Banner */}
-        <div className="flex items-center gap-3 bg-gradient-to-r from-orange-50 to-amber-50 dark:from-orange-950/30 dark:to-amber-950/30 border border-orange-200 dark:border-orange-900/50 rounded-2xl px-5 py-3 w-fit">
-          <Flame className="h-7 w-7 text-orange-500 fill-orange-500 shrink-0" />
+        <div className="flex items-center gap-3 bg-slate-900 dark:bg-white border border-slate-800 dark:border-slate-200 rounded-2xl px-5 py-3 w-fit">
+          <Flame className="h-7 w-7 text-white dark:text-slate-900 fill-white dark:fill-slate-900 shrink-0" />
           <div>
-            <p className="text-xl font-extrabold text-orange-600 dark:text-orange-400 leading-none">{stats.streakDays} ngày</p>
-            <p className="text-xs text-orange-500/80 dark:text-orange-500/70 font-medium mt-0.5">Streak hiện tại</p>
+            <p className="text-xl font-extrabold text-white dark:text-slate-900 leading-none">{stats.streakDays} ngày</p>
+            <p className="text-xs text-slate-300 dark:text-slate-600 font-medium mt-0.5">Streak hiện tại</p>
           </div>
         </div>
       </motion.div>
@@ -138,10 +135,10 @@ export default function DashboardClient({ user, stats, recentWords, activityData
         className="grid grid-cols-2 lg:grid-cols-4 gap-4"
       >
         {[
-          { label: 'Tổng từ đã học', value: stats.wordsLearned, icon: BookOpen, color: 'text-indigo-600', bg: 'bg-indigo-50 dark:bg-indigo-950/30', sub: 'Thời gian thực' },
-          { label: 'Điểm XP', value: stats.totalXp, icon: Sparkles, color: 'text-yellow-600', bg: 'bg-yellow-50 dark:bg-yellow-950/30', sub: 'Tích lũy' },
-          { label: 'Độ chính xác', value: `${stats.accuracy}%`, icon: Target, color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-950/30', sub: 'Trung bình học' },
-          { label: 'Thời gian học', value: `${stats.totalStudyMinutes}p`, icon: Clock, color: 'text-violet-600', bg: 'bg-violet-50 dark:bg-violet-950/30', sub: 'Tổng tích lũy' },
+          { label: 'Tổng từ đã học', value: stats.wordsLearned, icon: BookOpen, color: 'text-slate-700 dark:text-slate-200', bg: 'bg-slate-100 dark:bg-slate-800', sub: 'Thời gian thực' },
+          { label: 'Điểm XP', value: stats.totalXp, icon: Sparkles, color: 'text-slate-700 dark:text-slate-200', bg: 'bg-slate-100 dark:bg-slate-800', sub: 'Tích lũy' },
+          { label: 'Độ chính xác', value: `${stats.accuracy}%`, icon: Target, color: 'text-slate-700 dark:text-slate-200', bg: 'bg-slate-100 dark:bg-slate-800', sub: 'Trung bình học' },
+          { label: 'Thời gian học', value: `${stats.totalStudyMinutes}p`, icon: Clock, color: 'text-slate-700 dark:text-slate-200', bg: 'bg-slate-100 dark:bg-slate-800', sub: 'Tổng tích lũy' },
         ].map((kpi) => (
           <motion.div key={kpi.label} variants={item}>
             <Card className="overflow-hidden">
@@ -171,13 +168,13 @@ export default function DashboardClient({ user, stats, recentWords, activityData
                   {stats.wordsLearnedToday} / {stats.dailyGoal} từ hoàn thành
                 </p>
               </div>
-              <span className={`text-2xl font-extrabold ${progressPct >= 100 ? 'text-emerald-600' : 'text-indigo-600'} dark:${progressPct >= 100 ? 'text-emerald-400' : 'text-indigo-400'}`}>
+              <span className="text-2xl font-extrabold text-slate-900 dark:text-white">
                 {progressPct}%
               </span>
             </div>
-            <Progress value={progressPct} className="h-3 rounded-full" />
+            <Progress value={progressPct} className="h-3 rounded-full [&>div]:bg-slate-900 dark:[&>div]:bg-white" />
             {progressPct >= 100 && (
-              <p className="mt-2 text-xs text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1">
+              <p className="mt-2 text-xs text-slate-700 dark:text-slate-300 font-semibold flex items-center gap-1">
                 <CheckCircle2 className="h-4 w-4" /> Tuyệt vời! Bạn đã hoàn thành mục tiêu hôm nay 🎉
               </p>
             )}
@@ -205,7 +202,7 @@ export default function DashboardClient({ user, stats, recentWords, activityData
                           <action.icon className="h-5 w-5 text-white" />
                         </div>
                         {action.badge && (
-                          <span className="bg-white text-indigo-700 text-xs font-bold px-2 py-0.5 rounded-full">
+                          <span className="bg-white text-slate-900 text-xs font-bold px-2 py-0.5 rounded-full">
                             {action.badge}
                           </span>
                         )}
@@ -274,7 +271,7 @@ export default function DashboardClient({ user, stats, recentWords, activityData
           <Card className="h-full">
             <CardHeader className="pb-3 flex-row items-center justify-between">
               <CardTitle className="text-base">Từ gần đây</CardTitle>
-              <Link href="/review" className="text-xs text-indigo-600 dark:text-indigo-400 font-semibold flex items-center gap-1 hover:gap-2 transition-all">
+              <Link href="/review" className="text-xs text-slate-500 dark:text-slate-400 font-semibold flex items-center gap-1 hover:gap-2 hover:text-slate-900 dark:hover:text-white transition-all">
                 Xem tất cả <ArrowRight className="h-3 w-3" />
               </Link>
             </CardHeader>

@@ -25,10 +25,10 @@ interface GamesClientProps {
 }
 
 const GAMES = [
-  { id: 'matching', title: 'Ghép cặp từ', desc: 'Nối từ tiếng Anh với định nghĩa nhanh nhất có thể', emoji: '🔗', color: 'from-violet-500 to-purple-600' },
-  { id: 'spelling', title: 'Đánh vần', desc: 'Nghe và đánh vần chính xác từ vựng IELTS', emoji: '🎤', color: 'from-blue-500 to-indigo-600' },
-  { id: 'fill_blank', title: 'Điền vào chỗ trống', desc: 'Hoàn thành câu với từ vựng phù hợp', emoji: '✏️', color: 'from-emerald-500 to-teal-600' },
-  { id: 'speed', title: 'Speed Round', desc: 'Trả lời đúng càng nhiều từ dịch tốt nhất trong 60 giây', emoji: '⚡', color: 'from-amber-500 to-orange-500' },
+  { id: 'matching', title: 'Ghép cặp từ', desc: 'Nối từ tiếng Anh với định nghĩa nhanh nhất có thể', emoji: '🔗', color: 'from-slate-800 to-slate-900' },
+  { id: 'spelling', title: 'Đánh vần', desc: 'Nghe và đánh vần chính xác từ vựng IELTS', emoji: '🎙️', color: 'from-slate-700 to-slate-800' },
+  { id: 'fill_blank', title: 'Điền vào chỗ trống', desc: 'Hoàn thành câu với từ vựng phù hợp', emoji: '✏️', color: 'from-slate-600 to-slate-700' },
+  { id: 'speed', title: 'Speed Round', desc: 'Trả lời đúng càng nhiều từ dịch tốt nhất trong 60 giây', emoji: '⚡', color: 'from-slate-500 to-slate-600' },
 ];
 
 export default function GamesClient({ initialWords, decks }: GamesClientProps) {
@@ -352,7 +352,7 @@ export default function GamesClient({ initialWords, decks }: GamesClientProps) {
         </p>
         <Link
           href="/books"
-          className="flex items-center justify-center gap-2 w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg transition-all border-0 cursor-pointer"
+          className="flex items-center justify-center gap-2 w-full py-3 px-4 bg-slate-900 hover:bg-black dark:bg-white dark:hover:bg-slate-100 text-white dark:text-slate-900 font-bold rounded-xl shadow-lg transition-all border-0 cursor-pointer"
         >
           Tạo bộ từ vựng ngay
         </Link>
@@ -386,7 +386,7 @@ export default function GamesClient({ initialWords, decks }: GamesClientProps) {
               <select
                 value={selectedDeckId}
                 onChange={(e) => setSelectedDeckId(e.target.value)}
-                className="px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-slate-950 dark:text-white transition-all text-sm font-bold cursor-pointer min-w-[220px]"
+                className="px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-white focus:border-transparent text-slate-950 dark:text-white transition-all text-sm font-bold cursor-pointer min-w-[220px]"
               >
                 <option value="all">Tất cả từ vựng ({initialWords.length} từ)</option>
                 {decks.map((deck) => {
@@ -471,7 +471,7 @@ export default function GamesClient({ initialWords, decks }: GamesClientProps) {
                 <button
                   onClick={() => handleGameSelect(activeGame)}
                   disabled={saving}
-                  className="flex-1 py-3 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl active:scale-[0.98] transition-all cursor-pointer border-0 disabled:opacity-50"
+                  className="flex-1 py-3 px-4 bg-slate-900 hover:bg-black dark:bg-white dark:hover:bg-slate-100 text-white dark:text-slate-900 font-bold rounded-xl active:scale-[0.98] transition-all cursor-pointer border-0 disabled:opacity-50"
                 >
                   Chơi lại
                 </button>
@@ -510,7 +510,7 @@ export default function GamesClient({ initialWords, decks }: GamesClientProps) {
                           t.matched
                             ? 'opacity-0 scale-95 pointer-events-none'
                             : t.selected
-                            ? 'border-indigo-650 bg-indigo-50 text-indigo-755 dark:bg-indigo-950/40 dark:text-indigo-300'
+                            ? 'border-slate-900 bg-slate-100 text-slate-900 dark:border-white dark:bg-slate-800 dark:text-white'
                             : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-850 dark:text-slate-100 hover:scale-[1.02]'
                         }`}
                       >
@@ -555,7 +555,7 @@ export default function GamesClient({ initialWords, decks }: GamesClientProps) {
                         onChange={(e) => setSpellInput(e.target.value)}
                         disabled={spellChecked}
                         placeholder="Nhập spelling chính xác..."
-                        className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-900 dark:text-white transition-all font-mono tracking-wider text-center"
+                        className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-white text-slate-900 dark:text-white transition-all font-mono tracking-wider text-center"
                       />
                     </div>
 

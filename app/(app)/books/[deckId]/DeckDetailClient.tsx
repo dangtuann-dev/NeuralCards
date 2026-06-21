@@ -32,14 +32,14 @@ interface DeckDetailClientProps {
 }
 
 const POS_MAP: Record<string, { label: string; color: string }> = {
-  noun: { label: 'Danh từ', color: 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/30 dark:text-blue-400 dark:border-blue-900/50' },
-  verb: { label: 'Động từ', color: 'bg-red-50 text-red-700 border-red-200 dark:bg-red-950/30 dark:text-red-400 dark:border-red-900/50' },
-  adjective: { label: 'Tính từ', color: 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-900/50' },
-  adverb: { label: 'Trạng từ', color: 'bg-violet-50 text-violet-700 border-violet-200 dark:bg-violet-950/30 dark:text-violet-400 dark:border-violet-900/50' },
-  phrase: { label: 'Cụm từ', color: 'bg-teal-50 text-teal-700 border-teal-200 dark:bg-teal-950/30 dark:text-teal-400 dark:border-teal-900/50' },
-  idiom: { label: 'Thành ngữ', color: 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/30 dark:text-rose-400 dark:border-rose-900/50' },
-  collocation: { label: 'Collocation', color: 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-900/50' },
-  other: { label: 'Khác', color: 'bg-slate-50 text-slate-700 border-slate-200 dark:bg-slate-900/50 dark:text-slate-400 dark:border-slate-800' },
+  noun:        { label: 'Danh từ',    color: 'bg-slate-100 text-slate-700 border-slate-300 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700' },
+  verb:        { label: 'Động từ',    color: 'bg-slate-200 text-slate-800 border-slate-300 dark:bg-slate-700 dark:text-slate-200 dark:border-slate-600' },
+  adjective:   { label: 'Tính từ',   color: 'bg-slate-100 text-slate-700 border-slate-300 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700' },
+  adverb:      { label: 'Trạng từ',  color: 'bg-slate-200 text-slate-800 border-slate-300 dark:bg-slate-700 dark:text-slate-200 dark:border-slate-600' },
+  phrase:      { label: 'Cụm từ',    color: 'bg-slate-100 text-slate-700 border-slate-300 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700' },
+  idiom:       { label: 'Thành ngữ', color: 'bg-slate-900 text-white border-slate-900 dark:bg-white dark:text-slate-900 dark:border-white' },
+  collocation: { label: 'Collocation', color: 'bg-slate-200 text-slate-800 border-slate-300 dark:bg-slate-700 dark:text-slate-200 dark:border-slate-600' },
+  other:       { label: 'Khác',       color: 'bg-slate-50 text-slate-600 border-slate-200 dark:bg-slate-900 dark:text-slate-400 dark:border-slate-800' },
 };
 
 export default function DeckDetailClient({ deck, initialCards }: DeckDetailClientProps) {
@@ -57,7 +57,6 @@ export default function DeckDetailClient({ deck, initialCards }: DeckDetailClien
   const [loading, setLoading] = useState(false);
   const [isAutoFilling, setIsAutoFilling] = useState(false);
 
-  // Simple Web Speech API integration to pronounce words
   const speakWord = (text: string) => {
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
       window.speechSynthesis.cancel();
@@ -69,13 +68,9 @@ export default function DeckDetailClient({ deck, initialCards }: DeckDetailClien
 
   const handleOpenCreateModal = () => {
     setEditingWord(null);
-    setTerm('');
-    setPhonetic('');
-    setPartOfSpeech('noun');
-    setDefinition('');
-    setDefinitionVi('');
-    setExampleSentence('');
-    setExampleSentenceVi('');
+    setTerm(''); setPhonetic(''); setPartOfSpeech('noun');
+    setDefinition(''); setDefinitionVi('');
+    setExampleSentence(''); setExampleSentenceVi('');
     setModalOpen(true);
   };
 
@@ -138,54 +133,34 @@ export default function DeckDetailClient({ deck, initialCards }: DeckDetailClien
       toast.error('Vui lòng điền đầy đủ Từ vựng và Định nghĩa!');
       return;
     }
-
     setLoading(true);
     try {
       if (editingWord) {
-        // Edit flow
         const res = await updateWordInDeck(editingWord.id, {
-          lessonId: deck.id,
-          term: term.trim(),
-          phonetic: phonetic.trim(),
-          partOfSpeech: partOfSpeech || 'noun',
-          definition: definition.trim(),
-          definitionVi: definitionVi.trim(),
-          exampleSentence: exampleSentence.trim(),
+          lessonId: deck.id, term: term.trim(), phonetic: phonetic.trim(),
+          partOfSpeech: partOfSpeech || 'noun', definition: definition.trim(),
+          definitionVi: definitionVi.trim(), exampleSentence: exampleSentence.trim(),
           exampleSentenceVi: exampleSentenceVi.trim(),
         });
-
         if (res.success) {
           toast.success('Cập nhật từ vựng thành công! 🃏');
-          setModalOpen(false);
-          setEditingWord(null);
-          router.refresh();
+          setModalOpen(false); setEditingWord(null); router.refresh();
         } else {
           toast.error(res.error || 'Có lỗi xảy ra khi cập nhật từ');
         }
       } else {
-        // Create flow
         const res = await addWordToDeck({
-          lessonId: deck.id,
-          term: term.trim(),
-          phonetic: phonetic.trim(),
-          partOfSpeech: partOfSpeech || 'noun',
-          definition: definition.trim(),
-          definitionVi: definitionVi.trim(),
-          exampleSentence: exampleSentence.trim(),
+          lessonId: deck.id, term: term.trim(), phonetic: phonetic.trim(),
+          partOfSpeech: partOfSpeech || 'noun', definition: definition.trim(),
+          definitionVi: definitionVi.trim(), exampleSentence: exampleSentence.trim(),
           exampleSentenceVi: exampleSentenceVi.trim(),
         });
-
         if (res.success) {
           toast.success('Thêm từ vựng mới thành công! 🃏');
-          setTerm('');
-          setPhonetic('');
-          setPartOfSpeech('noun');
-          setDefinition('');
-          setDefinitionVi('');
-          setExampleSentence('');
-          setExampleSentenceVi('');
-          setModalOpen(false);
-          router.refresh();
+          setTerm(''); setPhonetic(''); setPartOfSpeech('noun');
+          setDefinition(''); setDefinitionVi('');
+          setExampleSentence(''); setExampleSentenceVi('');
+          setModalOpen(false); router.refresh();
         } else {
           toast.error(res.error || 'Có lỗi xảy ra khi thêm từ');
         }
@@ -197,13 +172,16 @@ export default function DeckDetailClient({ deck, initialCards }: DeckDetailClien
     }
   };
 
+  // Shared input class
+  const inputCls = "w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-white focus:border-transparent text-slate-900 dark:text-white transition-all text-sm";
+
   return (
     <div className="p-6 md:p-8 max-w-5xl mx-auto space-y-8">
       {/* ── Navigation back ── */}
       <button
         type="button"
         onClick={() => router.push('/books')}
-        className="inline-flex items-center gap-2 text-sm font-semibold text-slate-500 hover:text-slate-800 dark:hover:text-white transition-colors cursor-pointer bg-transparent border-0"
+        className="inline-flex items-center gap-2 text-sm font-semibold text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer bg-transparent border-0"
       >
         <ArrowLeft className="h-4 w-4" />
         Quay lại Bộ từ vựng
@@ -219,11 +197,11 @@ export default function DeckDetailClient({ deck, initialCards }: DeckDetailClien
             <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white font-heading">
               {deck.title}
             </h1>
-            <p className="text-slate-550 dark:text-slate-400 mt-1 text-sm">
+            <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm">
               {deck.description || 'Không có mô tả cho bộ từ này.'}
             </p>
             <div className="mt-3 flex flex-wrap gap-2">
-              <span className="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-650 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/30 px-3 py-1 rounded-full">
+              <span className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-full">
                 <BookOpen className="h-3.5 w-3.5" />
                 {initialCards.length} thẻ từ vựng
               </span>
@@ -234,7 +212,7 @@ export default function DeckDetailClient({ deck, initialCards }: DeckDetailClien
         <button
           type="button"
           onClick={handleOpenCreateModal}
-          className="flex items-center justify-center gap-2 py-2.5 px-5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg shadow-indigo-600/10 hover:shadow-indigo-600/20 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer md:w-auto w-full border-0"
+          className="flex items-center justify-center gap-2 py-2.5 px-5 bg-slate-900 hover:bg-black dark:bg-white dark:hover:bg-slate-100 text-white dark:text-slate-900 font-bold rounded-xl shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer md:w-auto w-full border-0"
         >
           <Plus className="h-5 w-5" />
           Thêm từ mới
@@ -244,7 +222,7 @@ export default function DeckDetailClient({ deck, initialCards }: DeckDetailClien
       {/* ── Words Cards List ── */}
       <div className="space-y-4">
         <h2 className="text-lg font-bold text-slate-900 dark:text-white font-heading flex items-center gap-2">
-          Danh sách thẻ từ vựng <Sparkles className="h-4 w-4 text-indigo-500" />
+          Danh sách thẻ từ vựng <Sparkles className="h-4 w-4 text-slate-500" />
         </h2>
 
         {initialCards.length === 0 ? (
@@ -273,13 +251,13 @@ export default function DeckDetailClient({ deck, initialCards }: DeckDetailClien
                         <button
                           type="button"
                           onClick={() => speakWord(card.term)}
-                          className="p-1 rounded-lg text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer bg-transparent border-0"
+                          className="p-1 rounded-lg text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer bg-transparent border-0"
                         >
                           <Volume2 className="h-4 w-4" />
                         </button>
                       </div>
                       {card.phonetic && (
-                        <p className="text-xs text-indigo-650 dark:text-indigo-400 font-mono mt-0.5">
+                        <p className="text-xs text-slate-500 dark:text-slate-400 font-mono mt-0.5">
                           {card.phonetic}
                         </p>
                       )}
@@ -291,13 +269,12 @@ export default function DeckDetailClient({ deck, initialCards }: DeckDetailClien
                           {pos.label}
                         </span>
                       )}
-                      
-                      {/* Action buttons (Edit & Delete Card) */}
+                      {/* Action buttons */}
                       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-50 dark:bg-slate-800 p-1 rounded-xl shadow-sm border border-slate-100 dark:border-slate-800">
                         <button
                           type="button"
                           onClick={() => handleOpenEditModal(card)}
-                          className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 hover:text-slate-800 dark:hover:text-white transition-colors cursor-pointer border-0"
+                          className="p-1.5 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer border-0"
                           title="Sửa từ vựng"
                         >
                           <Edit2 className="h-3.5 w-3.5" />
@@ -305,7 +282,7 @@ export default function DeckDetailClient({ deck, initialCards }: DeckDetailClien
                         <button
                           type="button"
                           onClick={() => handleDeleteWord(card.id)}
-                          className="p-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 text-slate-500 hover:text-red-650 dark:hover:text-red-450 transition-colors cursor-pointer border-0"
+                          className="p-1.5 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer border-0"
                           title="Xóa từ vựng"
                         >
                           <Trash2 className="h-3.5 w-3.5" />
@@ -319,16 +296,16 @@ export default function DeckDetailClient({ deck, initialCards }: DeckDetailClien
                       <span className="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">Định nghĩa</span>
                       <p className="text-slate-800 dark:text-slate-200 font-medium">{card.definition}</p>
                       {card.definitionVi && (
-                        <p className="text-slate-550 dark:text-slate-400 mt-0.5 text-xs">{card.definitionVi}</p>
+                        <p className="text-slate-500 dark:text-slate-400 mt-0.5 text-xs">{card.definitionVi}</p>
                       )}
                     </div>
 
                     {card.exampleSentence && (
                       <div className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl mt-2">
                         <span className="text-[9px] uppercase font-bold text-slate-400 block tracking-wider">Ví dụ</span>
-                        <p className="text-slate-700 dark:text-slate-350 italic font-sans">&ldquo;{card.exampleSentence}&rdquo;</p>
+                        <p className="text-slate-700 dark:text-slate-300 italic font-sans">&ldquo;{card.exampleSentence}&rdquo;</p>
                         {card.exampleSentenceVi && (
-                          <p className="text-slate-550 dark:text-slate-400 mt-0.5 text-xs">{card.exampleSentenceVi}</p>
+                          <p className="text-slate-500 dark:text-slate-400 mt-0.5 text-xs">{card.exampleSentenceVi}</p>
                         )}
                       </div>
                     )}
@@ -344,16 +321,11 @@ export default function DeckDetailClient({ deck, initialCards }: DeckDetailClien
       <AnimatePresence>
         {modalOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
-            {/* Backdrop */}
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm"
               onClick={() => setModalOpen(false)}
             />
-
-            {/* Modal Content */}
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -363,7 +335,7 @@ export default function DeckDetailClient({ deck, initialCards }: DeckDetailClien
               <button
                 type="button"
                 onClick={() => setModalOpen(false)}
-                className="absolute top-4 right-4 p-1.5 rounded-xl hover:bg-slate-150 dark:hover:bg-slate-800 text-slate-500 hover:text-slate-800 dark:hover:text-white transition-colors border-0 cursor-pointer"
+                className="absolute top-4 right-4 p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors border-0 cursor-pointer"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -372,7 +344,9 @@ export default function DeckDetailClient({ deck, initialCards }: DeckDetailClien
                 {editingWord ? 'Chỉnh sửa từ vựng ✏️' : 'Thêm từ vựng mới 🃏'}
               </h2>
               <p className="text-xs text-slate-500 mt-1">
-                {editingWord ? 'Cập nhật lại định nghĩa, từ loại hoặc ví dụ của từ vựng này.' : 'Tạo thẻ từ ghi nhớ, hệ thống sẽ tự động xếp vào hàng đợi học tập hàng ngày.'}
+                {editingWord
+                  ? 'Cập nhật lại định nghĩa, từ loại hoặc ví dụ của từ vựng này.'
+                  : 'Tạo thẻ từ ghi nhớ, hệ thống sẽ tự động xếp vào hàng đợi học tập hàng ngày.'}
               </p>
 
               <form onSubmit={handleSubmit} className="mt-6 space-y-4">
@@ -384,25 +358,19 @@ export default function DeckDetailClient({ deck, initialCards }: DeckDetailClien
                     </label>
                     <div className="flex items-center gap-2">
                       <input
-                        type="text"
-                        required
-                        value={term}
+                        type="text" required value={term}
                         onChange={(e) => setTerm(e.target.value)}
                         placeholder="Ví dụ: meticulous"
-                        className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-slate-900 dark:text-white transition-all text-sm"
+                        className={inputCls}
                       />
                       <button
                         type="button"
                         onClick={handleAutoFill}
                         disabled={isAutoFilling || !term.trim()}
-                        className="py-2.5 px-3 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/40 dark:hover:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 rounded-xl transition-all disabled:opacity-50 cursor-pointer flex items-center justify-center shrink-0 border-0"
+                        className="py-2.5 px-3 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl transition-all disabled:opacity-50 cursor-pointer flex items-center justify-center shrink-0 border-0"
                         title="Tự động tra từ và dịch"
                       >
-                        {isAutoFilling ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <Sparkles className="h-4 w-4" />
-                        )}
+                        {isAutoFilling ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
                       </button>
                     </div>
                   </div>
@@ -413,11 +381,10 @@ export default function DeckDetailClient({ deck, initialCards }: DeckDetailClien
                       Phiên âm (IPA)
                     </label>
                     <input
-                      type="text"
-                      value={phonetic}
+                      type="text" value={phonetic}
                       onChange={(e) => setPhonetic(e.target.value)}
                       placeholder="Ví dụ: /məˈtɪkyələs/"
-                      className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-slate-900 dark:text-white transition-all text-sm"
+                      className={inputCls}
                     />
                   </div>
                 </div>
@@ -430,7 +397,7 @@ export default function DeckDetailClient({ deck, initialCards }: DeckDetailClien
                   <select
                     value={partOfSpeech || 'noun'}
                     onChange={(e) => setPartOfSpeech(e.target.value as CardWord['partOfSpeech'])}
-                    className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-slate-900 dark:text-white transition-all text-sm cursor-pointer"
+                    className={inputCls + ' cursor-pointer'}
                   >
                     <option value="noun">Danh từ (Noun)</option>
                     <option value="verb">Động từ (Verb)</option>
@@ -444,82 +411,47 @@ export default function DeckDetailClient({ deck, initialCards }: DeckDetailClien
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* Definition */}
                   <div className="space-y-1">
                     <label className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider block">
                       Định nghĩa (Tiếng Anh) *
                     </label>
-                    <textarea
-                      required
-                      value={definition}
-                      onChange={(e) => setDefinition(e.target.value)}
-                      placeholder="Ví dụ: very careful and precise"
-                      rows={2}
-                      className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-slate-900 dark:text-white transition-all text-sm resize-none"
-                    />
+                    <textarea required value={definition} onChange={(e) => setDefinition(e.target.value)}
+                      placeholder="Ví dụ: very careful and precise" rows={2} className={inputCls + ' resize-none'} />
                   </div>
-
-                  {/* Definition Vi */}
                   <div className="space-y-1">
                     <label className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider block">
                       Giải nghĩa (Tiếng Việt)
                     </label>
-                    <textarea
-                      value={definitionVi}
-                      onChange={(e) => setDefinitionVi(e.target.value)}
-                      placeholder="Ví dụ: tỉ mỉ, kỹ càng"
-                      rows={2}
-                      className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-slate-900 dark:text-white transition-all text-sm resize-none"
-                    />
+                    <textarea value={definitionVi} onChange={(e) => setDefinitionVi(e.target.value)}
+                      placeholder="Ví dụ: tỉ mỉ, kỹ càng" rows={2} className={inputCls + ' resize-none'} />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* Example */}
                   <div className="space-y-1">
                     <label className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider block">
                       Ví dụ đặt câu (Tiếng Anh)
                     </label>
-                    <textarea
-                      value={exampleSentence}
-                      onChange={(e) => setExampleSentence(e.target.value)}
-                      placeholder="Ví dụ: He was meticulous in his preparation."
-                      rows={2}
-                      className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-slate-900 dark:text-white transition-all text-sm resize-none"
-                    />
+                    <textarea value={exampleSentence} onChange={(e) => setExampleSentence(e.target.value)}
+                      placeholder="Ví dụ: He was meticulous in his preparation." rows={2} className={inputCls + ' resize-none'} />
                   </div>
-
-                  {/* Example Vi */}
                   <div className="space-y-1">
                     <label className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider block">
                       Dịch câu ví dụ (Tiếng Việt)
                     </label>
-                    <textarea
-                      value={exampleSentenceVi}
-                      onChange={(e) => setExampleSentenceVi(e.target.value)}
-                      placeholder="Ví dụ: Anh ấy đã chuẩn bị rất tỉ mỉ."
-                      rows={2}
-                      className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-slate-900 dark:text-white transition-all text-sm resize-none"
-                    />
+                    <textarea value={exampleSentenceVi} onChange={(e) => setExampleSentenceVi(e.target.value)}
+                      placeholder="Ví dụ: Anh ấy đã chuẩn bị rất tỉ mỉ." rows={2} className={inputCls + ' resize-none'} />
                   </div>
                 </div>
 
-                {/* Submit button */}
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg shadow-indigo-600/10 hover:shadow-indigo-600/20 active:scale-[0.98] disabled:opacity-50 transition-all cursor-pointer flex items-center justify-center gap-2 mt-6 border-0"
+                  className="w-full py-3 px-4 bg-slate-900 hover:bg-black dark:bg-white dark:hover:bg-slate-100 text-white dark:text-slate-900 font-bold rounded-xl shadow-lg active:scale-[0.98] disabled:opacity-50 transition-all cursor-pointer flex items-center justify-center gap-2 mt-6 border-0"
                 >
                   {loading ? (
-                    <>
-                      <Loader2 className="h-5 w-5 animate-spin" />
-                      Đang xử lý...
-                    </>
-                  ) : editingWord ? (
-                    'Lưu thay đổi'
-                  ) : (
-                    'Thêm từ vựng'
-                  )}
+                    <><Loader2 className="h-5 w-5 animate-spin" />Đang xử lý...</>
+                  ) : editingWord ? 'Lưu thay đổi' : 'Thêm từ vựng'}
                 </button>
               </form>
             </motion.div>
