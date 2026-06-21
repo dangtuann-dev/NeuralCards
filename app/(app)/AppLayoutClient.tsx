@@ -52,7 +52,8 @@ export default function AppLayoutClient({ children, userStats }: AppLayoutClient
           </button>
 
           <div className="flex items-center gap-2">
-            <span className="text-lg font-extrabold text-slate-900 dark:text-white font-heading">🧠 NeuralCards</span>
+            <img src="/logo.svg" alt="Logo" className="w-6 h-6 rounded-lg" />
+            <span className="text-lg font-extrabold text-slate-900 dark:text-white font-heading">NeuralCards</span>
           </div>
 
           <button

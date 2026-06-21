@@ -5,17 +5,17 @@
   --font-heading: var(--font-plus-jakarta-sans), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-jetbrains-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   
-  --color-primary: #6366F1;       /* Indigo-500 */
-  --color-primary-light: #818CF8; /* Indigo-400 */
-  --color-primary-dark: #4F46E5;  /* Indigo-600 */
+  --color-primary: var(--primary-hex);
+  --color-primary-light: var(--primary-light-hex);
+  --color-primary-dark: var(--primary-dark-hex);
   --color-success: #10B981;       /* Emerald-500 */
   --color-warning: #F59E0B;       /* Amber-500 */
   --color-danger: #F43F5E;        /* Rose-500 */
-  --color-surface: #FFFFFF;
-  --color-bg: #F8FAFC;            /* Slate-50 */
-  --color-text: #0F172A;          /* Slate-900 */
+  --color-surface: var(--surface-hex);
+  --color-bg: var(--bg-hex);
+  --color-text: var(--text-hex);
   --color-muted: #64748B;         /* Slate-500 */
-  --color-border: #E2E8F0;        /* Slate-200 */
+  --color-border: var(--border-hex);
   
   --animate-accordion-down: accordion-down 0.2s ease-out;
   --animate-accordion-up: accordion-up 0.2s ease-out;
@@ -37,8 +37,8 @@
   --card-foreground: 222.2 84% 4.9%;
   --popover: 0 0% 100%;
   --popover-foreground: 222.2 84% 4.9%;
-  --primary: 243.4 75.4% 58.6%;   /* #6366F1 */
-  --primary-foreground: 210 40% 98%;
+  --primary: 222.2 47.4% 11.2%;   /* Slate-900 */
+  --primary-foreground: 210 40% 98%; /* Slate-50 */
   --secondary: 210 40% 96.1%;
   --secondary-foreground: 222.2 47.4% 11.2%;
   --muted: 210 40% 96.1%;
@@ -49,8 +49,17 @@
   --destructive-foreground: 210 40% 98%;
   --border: 214.3 31.8% 91.4%;
   --input: 214.3 31.8% 91.4%;
-  --ring: 243.4 75.4% 58.6%;
+  --ring: 222.2 47.4% 11.2%;
   --radius: 0.5rem;
+
+  /* Custom theme vars */
+  --primary-hex: #0f172a;
+  --primary-light-hex: #334155;
+  --primary-dark-hex: #020617;
+  --surface-hex: #ffffff;
+  --bg-hex: #f8fafc;
+  --text-hex: #0f172a;
+  --border-hex: #e2e8f0;
 }
 
 .dark {
@@ -60,8 +69,8 @@
   --card-foreground: 210 40% 98%;
   --popover: 222.2 84% 4.9%;
   --popover-foreground: 210 40% 98%;
-  --primary: 243.4 75.4% 58.6%;
-  --primary-foreground: 222.2 84% 4.9%;
+  --primary: 210 40% 98%;         /* Slate-50 */
+  --primary-foreground: 222.2 84% 4.9%; /* Slate-900 */
   --secondary: 217.2 32.6% 17.5%;
   --secondary-foreground: 210 40% 98%;
   --muted: 217.2 32.6% 17.5%;
@@ -72,7 +81,16 @@
   --destructive-foreground: 210 40% 98%;
   --border: 217.2 32.6% 17.5%;
   --input: 217.2 32.6% 17.5%;
-  --ring: 243.4 75.4% 58.6%;
+  --ring: 210 40% 98%;
+
+  /* Custom theme vars */
+  --primary-hex: #f8fafc;
+  --primary-light-hex: #cbd5e1;
+  --primary-dark-hex: #ffffff;
+  --surface-hex: #0f172a;
+  --bg-hex: #020617;
+  --text-hex: #f8fafc;
+  --border-hex: #1e293b;
 }
 
 body {
@@ -112,4 +130,63 @@ input[type="text"], input[type="email"], input[type="password"], textarea, selec
   color: #f8fafc !important;
   background-color: #0f172a !important;
 }
+
+/* From Uiverse.io by AqFox */ 
+.spinner {
+ width: 44px;
+ height: 44px;
+ animation: spinner-y0fdc1 2s infinite ease;
+ transform-style: preserve-3d;
+}
+
+.spinner > div {
+ background-color: rgba(0,77,255,0.2);
+ height: 100%;
+ position: absolute;
+ width: 100%;
+ border: 2px solid #004dff;
+}
+
+.spinner div:nth-of-type(1) {
+ transform: translateZ(-22px) rotateY(180deg);
+}
+
+.spinner div:nth-of-type(2) {
+ transform: rotateY(-270deg) translateX(50%);
+ transform-origin: top right;
+}
+
+.spinner div:nth-of-type(3) {
+ transform: rotateY(270deg) translateX(-50%);
+ transform-origin: center left;
+}
+
+.spinner div:nth-of-type(4) {
+ transform: rotateX(90deg) translateY(-50%);
+ transform-origin: top center;
+}
+
+.spinner div:nth-of-type(5) {
+ transform: rotateX(-90deg) translateY(50%);
+ transform-origin: bottom center;
+}
+
+.spinner div:nth-of-type(6) {
+ transform: translateZ(22px);
+}
+
+@keyframes spinner-y0fdc1 {
+ 0% {
+  transform: rotate(45deg) rotateX(-25deg) rotateY(25deg);
+ }
+
+ 50% {
+  transform: rotate(45deg) rotateX(-385deg) rotateY(25deg);
+ }
+
+ 100% {
+  transform: rotate(45deg) rotateX(-385deg) rotateY(385deg);
+ }
+}
+
 

@@ -66,17 +66,17 @@ export default function Sidebar({ onCloseMobile, userStats = { dailyGoal: 10, wo
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <Link href="/dashboard" className="flex items-center gap-3 group" onClick={onCloseMobile}>
-            <motion.div
+            <motion.img
               whileHover={{ rotate: 10, scale: 1.05 }}
-              className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-xl shadow-lg shadow-indigo-600/20"
-            >
-              🧠
-            </motion.div>
+              src="/logo.svg"
+              alt="NeuralCards Logo"
+              className="w-10 h-10 rounded-xl"
+            />
             <div>
-              <span className="font-extrabold text-lg tracking-tight bg-gradient-to-r from-slate-900 to-indigo-900 dark:from-white dark:to-indigo-200 bg-clip-text text-transparent font-heading">
+              <span className="font-extrabold text-lg tracking-tight text-slate-900 dark:text-white font-heading">
                 NeuralCards
               </span>
-              <span className="block text-[10px] text-indigo-500 font-bold uppercase tracking-wider -mt-1">
+              <span className="block text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider -mt-0.5">
                 IELTS Prep
               </span>
             </div>
