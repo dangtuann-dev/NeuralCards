@@ -15,6 +15,7 @@ const onboardingSchema = z.object({
 
 export async function completeOnboarding(data: z.infer<typeof onboardingSchema>) {
   const session = await auth();
+  console.log('completeOnboarding session:', JSON.stringify(session, null, 2));
   if (!session?.user?.id) {
     return { success: false, error: 'Unauthorized' };
   }

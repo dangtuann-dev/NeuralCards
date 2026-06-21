@@ -50,12 +50,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return token;
     },
     async session({ session, token }) {
-      if (token.id && session.user) {
-        session.user.id = token.id as string;
+      const userId = (token.id || token.sub) as string;
+      if (userId && session.user) {
+        session.user.id = userId;
         
         // Fetch onboarding status dynamically
         const profile = await db.query.profiles.findFirst({
-          where: eq(schema.profiles.id, token.id as string),
+          where: eq(schema.profiles.id, userId),
           columns: { onboardingCompleted: true },
         });
         
