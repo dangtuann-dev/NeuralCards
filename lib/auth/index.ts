@@ -46,10 +46,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   ],
   callbacks: {
     jwt({ token, user }) {
+      console.log('JWT callback - token:', JSON.stringify(token), 'user:', JSON.stringify(user));
       if (user) token.id = user.id;
       return token;
     },
     async session({ session, token }) {
+      console.log('Session callback - token:', JSON.stringify(token), 'session:', JSON.stringify(session));
       const userId = (token.id || token.sub) as string;
       if (userId && session.user) {
         session.user.id = userId;
@@ -59,6 +61,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           where: eq(schema.profiles.id, userId),
           columns: { onboardingCompleted: true },
         });
+        console.log('Session callback - profile:', JSON.stringify(profile));
         
         if (profile) {
           session.user.onboardingCompleted = profile.onboardingCompleted;
