@@ -44,11 +44,13 @@ export default auth(async (req: NextRequest & { auth: Session | null }) => {
   const isAdminRoute = pathname.startsWith('/admin');
   const isAuthRoute = ['/login', '/register', '/forgot-password'].includes(pathname);
 
-  if (!req.auth && (isAppRoute || isAdminRoute)) {
+  const isLoggedIn = !!req.auth?.user;
+
+  if (!isLoggedIn && (isAppRoute || isAdminRoute)) {
     return NextResponse.redirect(new URL('/login', req.url));
   }
 
-  if (req.auth) {
+  if (isLoggedIn && req.auth) {
     const onboardingCompleted = req.auth.user?.onboardingCompleted;
     
     if (isAuthRoute) {

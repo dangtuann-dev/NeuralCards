@@ -54,6 +54,20 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       console.log('Session callback - token:', JSON.stringify(token), 'session:', JSON.stringify(session));
       const userId = (token.id || token.sub) as string;
       if (userId && session.user) {
+        // Verify user exists in DB
+        const dbUser = await db.query.users.findFirst({
+          where: eq(schema.users.id, userId),
+          columns: { id: true },
+        });
+
+        if (!dbUser) {
+          console.log('Session callback - User not found in DB, invalidating session');
+          return {
+            ...session,
+            user: undefined,
+          };
+        }
+
         session.user.id = userId;
         
         // Fetch onboarding status dynamically
