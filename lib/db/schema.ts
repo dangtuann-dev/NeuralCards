@@ -112,7 +112,7 @@ export const sections = pgTable('sections', {
 
 export const lessons = pgTable('lessons', {
   id: uuid('id').defaultRandom().primaryKey(),
-  sectionId: uuid('section_id').references(() => sections.id, { onDelete: 'cascade' }).notNull(),
+  sectionId: uuid('section_id').references(() => sections.id, { onDelete: 'cascade' }),
   userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
   title: text('title').notNull(),       // "Paragraphs A–C vocabulary"
   description: text('description'),
