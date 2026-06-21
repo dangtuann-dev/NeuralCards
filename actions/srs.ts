@@ -1,7 +1,7 @@
 'use server';
 
 import { db } from '@/lib/db';
-import { wordProgress, profiles, studySessions, studyAnswers, words } from '@/lib/db/schema';
+import { wordProgress, profiles, studySessions, studyAnswers, words, lessons } from '@/lib/db/schema';
 import { auth } from '@/lib/auth';
 import { eq, and, lte, sql } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
@@ -267,4 +267,154 @@ export async function recordGamePlay(gameType: 'matching' | 'speed_round' | 'spe
     return { success: false, error: error.message || 'Lỗi khi lưu kết quả game' };
   }
 }
+
+export async function getCramCards(deckId?: string) {
+  const session = await auth();
+  if (!session?.user?.id) return { success: false, error: 'Unauthorized', cards: [] };
+  const userId = session.user.id;
+
+  try {
+    let query = db
+      .select({
+        id: words.id,
+        term: words.term,
+        phonetic: words.phonetic,
+        partOfSpeech: words.partOfSpeech,
+        definition: words.definition,
+        definitionVi: words.definitionVi,
+        exampleSentence: words.exampleSentence,
+        exampleSentenceVi: words.exampleSentenceVi,
+      })
+      .from(words)
+      .innerJoin(lessons, eq(words.lessonId, lessons.id));
+
+    let conditions = [eq(lessons.userId, userId)];
+    if (deckId && deckId !== 'all') {
+      conditions.push(eq(words.lessonId, deckId));
+    }
+
+    const matchedWords = await query.where(and(...conditions));
+
+    const cramCards = matchedWords.map((word) => ({
+      progressId: 'cram-' + word.id,
+      status: 'review',
+      word: {
+        id: word.id,
+        term: word.term,
+        phonetic: word.phonetic,
+        partOfSpeech: word.partOfSpeech as any,
+        definition: word.definition,
+        definitionVi: word.definitionVi,
+        exampleSentence: word.exampleSentence,
+        exampleSentenceVi: word.exampleSentenceVi,
+      }
+    }));
+
+    return { success: true, cards: cramCards };
+  } catch (error: any) {
+    return { success: false, error: error.message || 'Lỗi khi tải từ vựng ôn tập', cards: [] };
+  }
+}
+
+export async function submitCramAnswer(wordId: string, rating: 'again' | 'hard' | 'good' | 'easy') {
+  const session = await auth();
+  if (!session?.user?.id) return { success: false, error: 'Unauthorized' };
+  const userId = session.user.id;
+
+  const ratingToQuality = {
+    again: 1,
+    hard: 3,
+    good: 4,
+    easy: 5,
+  };
+  const quality = ratingToQuality[rating];
+  const isCorrect = quality >= 3;
+  const xpReward = isCorrect ? 3 : 1;
+
+  try {
+    const today = new Date();
+    const todayStr = today.toISOString().split('T')[0];
+    
+    // Find or create a cram session for today
+    const sessionRecord = await db.query.studySessions.findFirst({
+      where: and(
+        eq(studySessions.userId, userId),
+        eq(studySessions.gameType, 'flashcard')
+      ),
+    });
+
+    let sessionId: string;
+    if (!sessionRecord) {
+      const [newSession] = await db.insert(studySessions).values({
+        userId,
+        gameType: 'flashcard',
+        score: xpReward,
+        totalQuestions: 1,
+        correctAnswers: isCorrect ? 1 : 0,
+        xpEarned: xpReward,
+        timeTakenSeconds: 5,
+      }).returning();
+      sessionId = newSession.id;
+    } else {
+      sessionId = sessionRecord.id;
+      await db.update(studySessions).set({
+        totalQuestions: sessionRecord.totalQuestions + 1,
+        correctAnswers: sessionRecord.correctAnswers + (isCorrect ? 1 : 0),
+        xpEarned: sessionRecord.xpEarned + xpReward,
+        score: sessionRecord.score + xpReward,
+        timeTakenSeconds: (sessionRecord.timeTakenSeconds || 0) + 5,
+        completedAt: new Date(),
+      }).where(eq(studySessions.id, sessionId));
+    }
+
+    // Insert study answer log
+    await db.insert(studyAnswers).values({
+      sessionId,
+      wordId,
+      userAnswer: rating,
+      isCorrect,
+      timeTakenMs: 1000,
+    });
+
+    const profile = await db.query.profiles.findFirst({
+      where: eq(profiles.id, userId),
+    });
+
+    if (profile) {
+      let newStreak = profile.streakDays;
+      const todayDate = new Date();
+      todayDate.setHours(0,0,0,0);
+      
+      if (profile.lastStudiedAt) {
+        const lastStudied = new Date(profile.lastStudiedAt);
+        lastStudied.setHours(0,0,0,0);
+        const diffTime = todayDate.getTime() - lastStudied.getTime();
+        const diffDays = diffTime / (1000 * 60 * 60 * 24);
+        
+        if (diffDays === 1) {
+          newStreak = profile.streakDays + 1;
+        } else if (diffDays > 1) {
+          newStreak = 1;
+        }
+      } else {
+        newStreak = 1;
+      }
+
+      await db.update(profiles).set({
+        totalXp: profile.totalXp + xpReward,
+        streakDays: newStreak,
+        longestStreak: Math.max(profile.longestStreak, newStreak),
+        lastStudiedAt: new Date(),
+        updatedAt: new Date(),
+      }).where(eq(profiles.id, userId));
+    }
+
+    revalidatePath('/dashboard');
+    revalidatePath('/leaderboard');
+    return { success: true, xpEarned: xpReward };
+  } catch (error: any) {
+    return { success: false, error: error.message || 'Lỗi khi lưu kết quả ôn tập tự do' };
+  }
+}
+
 

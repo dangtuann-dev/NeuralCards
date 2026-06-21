@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Volume2, RefreshCw, BookOpen } from 'lucide-react';
-import { submitCardReview } from '@/actions/srs';
+import { Volume2, RefreshCw, Loader2 } from 'lucide-react';
+import { submitCardReview, getCramCards, submitCramAnswer } from '@/actions/srs';
 import { toast } from 'sonner';
 import Link from 'next/link';
 
@@ -26,6 +26,7 @@ interface DueCard {
 
 interface ReviewClientProps {
   initialCards: DueCard[];
+  decks: { id: string; title: string }[];
 }
 
 const POS_LABELS: Record<string, string> = {
@@ -39,11 +40,15 @@ const POS_LABELS: Record<string, string> = {
   other: 'Khác',
 };
 
-export default function ReviewClient({ initialCards }: ReviewClientProps) {
-  const [cards] = useState<DueCard[]>(initialCards);
+export default function ReviewClient({ initialCards, decks }: ReviewClientProps) {
+  const [cards, setCards] = useState<DueCard[]>(initialCards);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [mode, setMode] = useState<'srs' | 'cram'>(initialCards.length > 0 ? 'srs' : 'cram');
+  
+  const [selectedDeckId, setSelectedDeckId] = useState('all');
+  const [cramLoading, setCramLoading] = useState(false);
 
   const currentCard = cards[currentIndex];
 
@@ -56,11 +61,52 @@ export default function ReviewClient({ initialCards }: ReviewClientProps) {
     }
   };
 
+  const startCramMode = async (deckId: string = 'all') => {
+    setCramLoading(true);
+    setSelectedDeckId(deckId);
+    try {
+      const res = await getCramCards(deckId);
+      if (res.success && res.cards) {
+        if (res.cards.length === 0) {
+          toast.error('Bộ từ vựng này chưa có thẻ từ nào để ôn tập!');
+        } else {
+          setCards(res.cards);
+          setCurrentIndex(0);
+          setIsFlipped(false);
+          setMode('cram');
+          toast.success(`Đã tải ${res.cards.length} thẻ ở chế độ tự do! 🚀`);
+        }
+      } else {
+        toast.error(res.error || 'Lỗi khi tải từ vựng tự do');
+      }
+    } catch {
+      toast.error('Lỗi kết nối khi tải từ vựng');
+    } finally {
+      setCramLoading(false);
+    }
+  };
+
   const handleRate = async (rating: 'again' | 'hard' | 'good' | 'easy') => {
     if (!currentCard || loading) return;
 
     setLoading(true);
     try {
+      if (mode === 'cram') {
+        const res = await submitCramAnswer(currentCard.word.id, rating);
+        if (res.success) {
+          toast.success(`Ôn tập tự do! +${res.xpEarned} XP 🌟`);
+          setIsFlipped(false);
+          setTimeout(() => {
+            setCurrentIndex((prev) => prev + 1);
+            setLoading(false);
+          }, 150);
+        } else {
+          toast.error(res.error || 'Lỗi khi lưu kết quả ôn tập');
+          setLoading(false);
+        }
+        return;
+      }
+
       const res = await submitCardReview(
         currentCard.progressId,
         currentCard.word.id,
@@ -70,7 +116,6 @@ export default function ReviewClient({ initialCards }: ReviewClientProps) {
       if (res.success) {
         toast.success(`Đã lưu kết quả! +${res.xpEarned} XP 🌟`);
         setIsFlipped(false);
-        // Delay moving to the next card to allow flip animation to reset smoothly
         setTimeout(() => {
           setCurrentIndex((prev) => prev + 1);
           setLoading(false);
@@ -87,33 +132,72 @@ export default function ReviewClient({ initialCards }: ReviewClientProps) {
 
   if (cards.length === 0 || currentIndex >= cards.length) {
     return (
-      <div className="p-8 max-w-md mx-auto flex flex-col items-center justify-center min-h-[60vh] text-center">
+      <div className="p-8 max-w-md mx-auto flex flex-col items-center justify-center min-h-[70vh] text-center">
         <motion.div
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ type: 'spring', duration: 0.6 }}
-          className="text-7xl mb-6"
+          className="text-7xl mb-6 font-emoji"
         >
-          🎉
+          {mode === 'cram' ? '📚' : '🎉'}
         </motion.div>
         <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white font-heading mb-2">
-          Đã xong ôn tập!
+          {mode === 'cram' ? 'Đã xong ôn tập tự do!' : 'Đã xong ôn tập hôm nay!'}
         </h1>
         <p className="text-slate-500 dark:text-slate-400 mb-8 text-sm">
-          Tuyệt vời! Bạn không còn thẻ từ nào cần ôn tập trong hôm nay.
+          {mode === 'cram' 
+            ? 'Bạn đã ôn tập xong danh sách từ tự do đã chọn.' 
+            : 'Tuyệt vời! Bạn không còn thẻ từ nào cần ôn tập bắt buộc trong hôm nay.'}
         </p>
-        <div className="space-y-3 w-full">
+
+        {/* Cram Mode Selection Box */}
+        <div className="w-full bg-slate-50 dark:bg-slate-900/65 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 mb-6 space-y-4 text-left shadow-sm">
+          <div>
+            <h3 className="text-sm font-bold text-slate-900 dark:text-white font-heading">
+              Luyện tập tự do & Không giới hạn 🚀
+            </h3>
+            <p className="text-xs text-slate-500 mt-1 leading-normal">
+              Ôn đi ôn lại toàn bộ từ vựng hoặc theo từng bộ từ mà không làm ảnh hưởng đến tiến trình lặp lại ngắt quãng (SRS).
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Chọn bộ từ vựng</label>
+            <select
+              value={selectedDeckId}
+              onChange={(e) => setSelectedDeckId(e.target.value)}
+              className="w-full px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-slate-900 dark:text-white transition-all text-sm cursor-pointer"
+            >
+              <option value="all">Tất cả từ vựng ({decks.length} bộ)</option>
+              {decks.map(deck => (
+                <option key={deck.id} value={deck.id}>{deck.title}</option>
+              ))}
+            </select>
+          </div>
+
+          <button
+            type="button"
+            disabled={cramLoading}
+            onClick={() => startCramMode(selectedDeckId)}
+            className="flex items-center justify-center gap-2 w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg transition-all active:scale-[0.98] disabled:opacity-50 cursor-pointer border-0"
+          >
+            {cramLoading ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Đang chuẩn bị...
+              </>
+            ) : (
+              'Bắt đầu luyện tập tự do'
+            )}
+          </button>
+        </div>
+
+        <div className="space-y-3 w-full border-t border-slate-100 dark:border-slate-800/80 pt-6">
           <Link
             href="/dashboard"
-            className="flex items-center justify-center gap-2 w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg transition-all"
+            className="flex items-center justify-center gap-2 w-full py-3 px-4 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-750 text-slate-700 dark:text-slate-200 font-bold rounded-xl transition-all border-0"
           >
             Quay lại Dashboard
-          </Link>
-          <Link
-            href="/books"
-            className="flex items-center justify-center gap-2 w-full py-3 px-4 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-750 text-slate-700 dark:text-slate-200 font-bold rounded-xl transition-all"
-          >
-            Quản lý Bộ từ <BookOpen className="h-4 w-4" />
           </Link>
         </div>
       </div>
@@ -123,7 +207,34 @@ export default function ReviewClient({ initialCards }: ReviewClientProps) {
   const { word } = currentCard;
 
   return (
-    <div className="p-6 md:p-8 max-w-2xl mx-auto space-y-8 flex flex-col items-center">
+    <div className="p-6 md:p-8 max-w-2xl mx-auto space-y-6 flex flex-col items-center">
+      {/* Mode Header */}
+      <div className="w-full flex items-center justify-between">
+        <span className={`inline-flex items-center gap-1.5 text-[11px] font-bold px-3 py-1 rounded-full border ${
+          mode === 'cram' 
+            ? 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-900/50' 
+            : 'bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-indigo-950/30 dark:text-indigo-400 dark:border-indigo-900/50'
+        }`}>
+          {mode === 'cram' ? '🚀 Luyện tập tự do' : '🧠 Ôn tập hàng ngày (SRS)'}
+        </span>
+        
+        {mode === 'cram' && initialCards.length > 0 && (
+          <button
+            type="button"
+            onClick={() => {
+              setMode('srs');
+              setCards(initialCards);
+              setCurrentIndex(0);
+              setIsFlipped(false);
+              toast.info('Đã quay lại chế độ ôn tập SRS hàng ngày.');
+            }}
+            className="text-xs font-bold text-slate-500 hover:text-red-500 cursor-pointer bg-transparent border-0 transition-colors"
+          >
+            Quay lại SRS
+          </button>
+        )}
+      </div>
+
       {/* Progress Bar */}
       <div className="w-full space-y-2">
         <div className="flex justify-between items-center text-xs font-bold text-slate-400 uppercase tracking-wider">
@@ -158,7 +269,7 @@ export default function ReviewClient({ initialCards }: ReviewClientProps) {
                   e.stopPropagation();
                   speakWord(word.term);
                 }}
-                className="p-2 rounded-xl text-slate-400 hover:text-indigo-600 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                className="p-2 rounded-xl text-slate-400 hover:text-indigo-600 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer border-0 bg-transparent"
               >
                 <Volume2 className="h-5 w-5" />
               </button>
@@ -191,7 +302,7 @@ export default function ReviewClient({ initialCards }: ReviewClientProps) {
                 <button
                   type="button"
                   onClick={() => speakWord(word.term)}
-                  className="p-1 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer"
+                  className="p-1 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer border-0 bg-transparent"
                 >
                   <Volume2 className="h-4 w-4" />
                 </button>
@@ -206,7 +317,7 @@ export default function ReviewClient({ initialCards }: ReviewClientProps) {
                 <span className="text-[9px] uppercase font-bold text-slate-400 block tracking-wider">Định nghĩa</span>
                 <p className="text-slate-800 dark:text-slate-200 font-semibold text-base">{word.definition}</p>
                 {word.definitionVi && (
-                  <p className="text-slate-500 dark:text-slate-400 text-sm mt-0.5">{word.definitionVi}</p>
+                  <p className="text-slate-550 dark:text-slate-400 text-sm mt-0.5">{word.definitionVi}</p>
                 )}
               </div>
 
@@ -215,7 +326,7 @@ export default function ReviewClient({ initialCards }: ReviewClientProps) {
                   <span className="text-[8px] uppercase font-bold text-slate-400 block tracking-wider">Câu ví dụ</span>
                   <p className="text-slate-700 dark:text-slate-350 italic text-xs">&ldquo;{word.exampleSentence}&rdquo;</p>
                   {word.exampleSentenceVi && (
-                    <p className="text-slate-500 dark:text-slate-400 text-[11px] mt-0.5">{word.exampleSentenceVi}</p>
+                    <p className="text-slate-550 dark:text-slate-450 text-[11px] mt-0.5">{word.exampleSentenceVi}</p>
                   )}
                 </div>
               )}
@@ -262,7 +373,7 @@ export default function ReviewClient({ initialCards }: ReviewClientProps) {
               animate={{ opacity: 1 }}
               type="button"
               onClick={() => setIsFlipped(true)}
-              className="w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-2xl shadow-lg shadow-indigo-600/10 hover:shadow-indigo-600/20 active:scale-[0.99] transition-all cursor-pointer text-center text-sm tracking-wide"
+              className="w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-2xl shadow-lg shadow-indigo-600/10 hover:shadow-indigo-600/20 active:scale-[0.99] transition-all cursor-pointer text-center text-sm tracking-wide border-0"
             >
               Lật thẻ xem nghĩa
             </motion.button>
