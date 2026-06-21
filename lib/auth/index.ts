@@ -14,10 +14,12 @@ const loginSchema = z.object({
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: DrizzleAdapter(db, {
+    /* eslint-disable @typescript-eslint/no-explicit-any */
     usersTable: schema.users as any,
     accountsTable: schema.accounts as any,
     sessionsTable: schema.sessions as any,
     verificationTokensTable: schema.verificationTokens as any,
+    /* eslint-enable @typescript-eslint/no-explicit-any */
   }),
   session: { strategy: 'jwt' },
   providers: [
@@ -58,9 +60,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         });
         
         if (profile) {
-          (session.user as any).onboardingCompleted = profile.onboardingCompleted;
+          session.user.onboardingCompleted = profile.onboardingCompleted;
         } else {
-          (session.user as any).onboardingCompleted = false;
+          session.user.onboardingCompleted = false;
         }
       }
       return session;

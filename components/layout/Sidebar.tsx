@@ -43,7 +43,7 @@ export default function Sidebar({ onCloseMobile, userStats = { dailyGoal: 10, wo
   const { data: session } = useSession();
 
   const user = session?.user;
-  const isAdmin = (user as any)?.role === 'admin';
+  const isAdmin = user?.role === 'admin';
 
   const navItems = [
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },

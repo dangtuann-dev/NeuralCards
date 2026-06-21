@@ -52,9 +52,10 @@ export async function registerUser(data: z.infer<typeof registerSchema>) {
     });
     
     return { success: true };
-  } catch (error: any) {
+  } catch (error) {
     console.error('Registration action error:', error);
-    return { success: false, error: error.message || 'An unexpected error occurred during registration' };
+    const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred during registration';
+    return { success: false, error: errorMessage };
   }
 }
 
@@ -107,7 +108,7 @@ export async function forgotPassword(email: string) {
     }
     
     return { success: true };
-  } catch (error: any) {
+  } catch (error) {
     console.error('Forgot password action error:', error);
     return { success: false, error: 'Đã xảy ra lỗi khi gửi yêu cầu. Vui lòng thử lại!' };
   }
@@ -135,7 +136,7 @@ export async function resetPassword(password: string, token: string) {
     await db.delete(verificationTokens).where(eq(verificationTokens.token, token));
     
     return { success: true };
-  } catch (error: any) {
+  } catch (error) {
     console.error('Reset password action error:', error);
     return { success: false, error: 'Đặt lại mật khẩu thất bại. Vui lòng thử lại!' };
   }

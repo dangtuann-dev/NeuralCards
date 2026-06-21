@@ -3,6 +3,7 @@ import { Ratelimit } from '@upstash/ratelimit';
 import { Redis } from '@upstash/redis';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import type { Session } from 'next-auth';
 
 let ratelimit: Ratelimit | null = null;
 
@@ -18,12 +19,14 @@ try {
   console.warn('Failed to initialize rate limiter. Upstash Redis credentials might be missing.', error);
 }
 
-export default auth(async (req: NextRequest & { auth: any }) => {
+export default auth(async (req: NextRequest & { auth: Session | null }) => {
   const { pathname } = req.nextUrl;
 
   // Rate limit API routes
   if (pathname.startsWith('/api/') && ratelimit) {
-    const ip = (req as any).ip ?? '127.0.0.1';
+    const ip = req.headers.get('x-forwarded-for')?.split(',')[0] ?? 
+               req.headers.get('x-real-ip') ?? 
+               '127.0.0.1';
     try {
       const { success } = await ratelimit.limit(ip);
       if (!success) {

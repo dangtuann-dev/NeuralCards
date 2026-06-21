@@ -59,8 +59,9 @@ export async function completeOnboarding(data: z.infer<typeof onboardingSchema>)
     
     revalidatePath('/dashboard');
     return { success: true };
-  } catch (error: any) {
+  } catch (error) {
     console.error('Onboarding action error:', error);
-    return { success: false, error: error.message || 'Failed to complete onboarding' };
+    const errorMessage = error instanceof Error ? error.message : 'Failed to complete onboarding';
+    return { success: false, error: errorMessage };
   }
 }

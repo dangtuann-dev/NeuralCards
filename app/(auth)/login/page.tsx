@@ -104,7 +104,7 @@ export default function LoginPage() {
               <div className="text-indigo-200 font-mono text-xs uppercase tracking-widest">Adjective</div>
               <div className="text-2xl font-bold mt-1 font-heading">ubiquitous</div>
               <div className="text-sm text-indigo-100 mt-2">present, appearing, or found everywhere.</div>
-              <div className="text-xs text-indigo-300 italic mt-3">"Mobile phones are ubiquitous."</div>
+              <div className="text-xs text-indigo-300 italic mt-3">&quot;Mobile phones are ubiquitous.&quot;</div>
             </div>
 
             {/* Card 2 */}
