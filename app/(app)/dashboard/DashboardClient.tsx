@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { 
-  Flame, Sparkles, BookOpen, Layers, Gamepad2, Trophy,
+  Flame, Sparkles, BookOpen, Layers, Gamepad2,
   ArrowRight, Target, CheckCircle2, Clock, TrendingUp
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -94,14 +94,6 @@ export default function DashboardClient({ user, stats, recentWords, activityData
       accent: 'violet',
       gradient: 'from-violet-500 to-purple-600',
     },
-    {
-      title: 'Bảng xếp hạng',
-      desc: 'So sánh với bạn bè',
-      icon: Trophy,
-      href: '/leaderboard',
-      accent: 'amber',
-      gradient: 'from-amber-500 to-orange-500',
-    },
   ];
 
   return (
@@ -119,7 +111,7 @@ export default function DashboardClient({ user, stats, recentWords, activityData
           <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white font-heading mt-1">
             Xin chào, {firstName}! 👋
           </h1>
-          <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm">
+          <p className="text-slate-550 dark:text-slate-400 mt-1 text-sm">
             Bạn đã học{' '}
             <span className="font-bold text-indigo-600 dark:text-indigo-400">
               {stats.wordsLearnedToday}/{stats.dailyGoal} từ
@@ -200,7 +192,7 @@ export default function DashboardClient({ user, stats, recentWords, activityData
           variants={container}
           initial="hidden"
           animate="show"
-          className="grid grid-cols-2 lg:grid-cols-4 gap-4"
+          className="grid grid-cols-1 sm:grid-cols-3 gap-4"
         >
           {quickActions.map((action) => (
             <motion.div key={action.href} variants={item} whileHover={{ y: -3 }} className="h-full">

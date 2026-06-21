@@ -9,7 +9,6 @@ import {
   BookOpen, 
   Layers, 
   Gamepad2, 
-  Trophy, 
   Settings, 
   ShieldAlert, 
   LogOut, 
@@ -50,7 +49,6 @@ export default function Sidebar({ onCloseMobile, userStats = { dailyGoal: 10, wo
     { name: 'Bộ từ vựng', href: '/books', icon: BookOpen },
     { name: 'Ôn tập (SRS)', href: '/review', icon: Layers },
     { name: 'Mini-games', href: '/games', icon: Gamepad2 },
-    { name: 'Bảng xếp hạng', href: '/leaderboard', icon: Trophy },
     { name: 'Cài đặt', href: '/settings', icon: Settings },
   ];
 
