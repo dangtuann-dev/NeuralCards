@@ -100,3 +100,85 @@ export async function addWordToDeck(data: z.infer<typeof wordSchema>) {
     return { success: false, error: error.message || 'Lỗi khi thêm từ vựng mới' };
   }
 }
+
+async function translateToVi(text: string): Promise<string> {
+  if (!text) return '';
+  try {
+    const res = await fetch(
+      `https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=vi&dt=t&q=${encodeURIComponent(text)}`
+    );
+    if (!res.ok) return '';
+    const data = await res.json();
+    if (data && data[0]) {
+      return data[0].map((sentence: any) => sentence[0]).join('').trim();
+    }
+    return '';
+  } catch {
+    return '';
+  }
+}
+
+function mapPartOfSpeech(pos: string): 'noun'|'verb'|'adjective'|'adverb'|'phrase'|'idiom'|'collocation'|'other' {
+  const normalized = pos.toLowerCase().trim();
+  if (['noun', 'verb', 'adjective', 'adverb'].includes(normalized)) {
+    return normalized as 'noun'|'verb'|'adjective'|'adverb';
+  }
+  if (normalized === 'adjective' || normalized === 'adj') return 'adjective';
+  if (normalized === 'adverb' || normalized === 'adv') return 'adverb';
+  if (normalized === 'phrase' || normalized === 'prepositional phrase') return 'phrase';
+  if (normalized === 'idiom') return 'idiom';
+  if (normalized === 'collocation') return 'collocation';
+  return 'other';
+}
+
+export async function lookupWord(word: string) {
+  if (!word || !word.trim()) {
+    return { success: false, error: 'Từ vựng không hợp lệ' };
+  }
+
+  try {
+    const res = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word.trim().toLowerCase())}`);
+    if (!res.ok) {
+      return { success: false, error: 'Không tìm thấy định nghĩa cho từ này' };
+    }
+
+    const data = await res.json();
+    if (!Array.isArray(data) || data.length === 0) {
+      return { success: false, error: 'Không tìm thấy định nghĩa cho từ này' };
+    }
+
+    const entry = data[0];
+    const phonetic = entry.phonetic || (entry.phonetics && entry.phonetics.find((p: any) => p.text)?.text) || '';
+
+    // Find the first meaning
+    const meaning = entry.meanings?.[0];
+    const partOfSpeechRaw = meaning?.partOfSpeech || 'noun';
+    const partOfSpeech = mapPartOfSpeech(partOfSpeechRaw);
+
+    // Find definition and example
+    const definitionObj = meaning?.definitions?.[0];
+    const definition = definitionObj?.definition || '';
+    const exampleSentence = definitionObj?.example || '';
+
+    // Translate English definition to Vietnamese
+    const definitionVi = definition ? await translateToVi(definition) : '';
+
+    // Translate English example to Vietnamese
+    const exampleSentenceVi = exampleSentence ? await translateToVi(exampleSentence) : '';
+
+    return {
+      success: true,
+      data: {
+        phonetic,
+        partOfSpeech,
+        definition,
+        definitionVi,
+        exampleSentence,
+        exampleSentenceVi,
+      }
+    };
+  } catch (error: any) {
+    return { success: false, error: error.message || 'Lỗi hệ thống khi tra từ vựng' };
+  }
+}
+

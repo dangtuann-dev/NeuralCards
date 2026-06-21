@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Plus, X, Loader2, BookOpen, Volume2, Sparkles } from 'lucide-react';
-import { addWordToDeck } from '@/actions/books';
+import { addWordToDeck, lookupWord } from '@/actions/books';
 import { toast } from 'sonner';
 
 interface Deck {
@@ -53,6 +53,7 @@ export default function DeckDetailClient({ deck, initialCards }: DeckDetailClien
   const [exampleSentence, setExampleSentence] = useState('');
   const [exampleSentenceVi, setExampleSentenceVi] = useState('');
   const [loading, setLoading] = useState(false);
+  const [isAutoFilling, setIsAutoFilling] = useState(false);
 
   // Simple Web Speech API integration to pronounce words
   const speakWord = (text: string) => {
@@ -61,6 +62,30 @@ export default function DeckDetailClient({ deck, initialCards }: DeckDetailClien
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.lang = 'en-US';
       window.speechSynthesis.speak(utterance);
+    }
+  };
+
+  const handleAutoFill = async () => {
+    if (!term.trim()) return;
+    setIsAutoFilling(true);
+    const toastId = toast.loading('Đang tự động dịch và tra cứu từ vựng...');
+    try {
+      const res = await lookupWord(term);
+      if (res.success && res.data) {
+        setPhonetic(res.data.phonetic || '');
+        setPartOfSpeech(res.data.partOfSpeech || 'noun');
+        setDefinition(res.data.definition || '');
+        setDefinitionVi(res.data.definitionVi || '');
+        setExampleSentence(res.data.exampleSentence || '');
+        setExampleSentenceVi(res.data.exampleSentenceVi || '');
+        toast.success('Đã tự động điền thông tin từ vựng! ✨', { id: toastId });
+      } else {
+        toast.error(res.error || 'Không tìm thấy thông tin từ vựng', { id: toastId });
+      }
+    } catch {
+      toast.error('Có lỗi xảy ra khi tra cứu tự động', { id: toastId });
+    } finally {
+      setIsAutoFilling(false);
     }
   };
 
@@ -267,14 +292,29 @@ export default function DeckDetailClient({ deck, initialCards }: DeckDetailClien
                     <label className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider block">
                       Từ vựng (Tiếng Anh) *
                     </label>
-                    <input
-                      type="text"
-                      required
-                      value={term}
-                      onChange={(e) => setTerm(e.target.value)}
-                      placeholder="Ví dụ: meticulous"
-                      className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-slate-900 dark:text-white transition-all text-sm"
-                    />
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        required
+                        value={term}
+                        onChange={(e) => setTerm(e.target.value)}
+                        placeholder="Ví dụ: meticulous"
+                        className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-slate-900 dark:text-white transition-all text-sm"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleAutoFill}
+                        disabled={isAutoFilling || !term.trim()}
+                        className="py-2.5 px-3 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/40 dark:hover:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 rounded-xl transition-all disabled:opacity-50 cursor-pointer flex items-center justify-center shrink-0 border-0"
+                        title="Tự động tra từ và dịch"
+                      >
+                        {isAutoFilling ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Sparkles className="h-4 w-4" />
+                        )}
+                      </button>
+                    </div>
                   </div>
 
                   {/* Phonetic */}
