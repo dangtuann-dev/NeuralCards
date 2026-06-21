@@ -1,0 +1,23 @@
+{
+  "name": "NeuralCards — IELTS Vocabulary",
+  "short_name": "NeuralCards",
+  "description": "Master IELTS vocabulary with AI-powered flashcards and games",
+  "start_url": "/dashboard",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#F8FAFC",
+  "theme_color": "#6366F1",
+  "categories": ["education", "productivity"],
+  "icons": [
+    { "src": "/icons/icon-72.png", "sizes": "72x72", "type": "image/png" },
+    { "src": "/icons/icon-96.png", "sizes": "96x96", "type": "image/png" },
+    { "src": "/icons/icon-128.png", "sizes": "128x128", "type": "image/png" },
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Start Review", "url": "/review" },
+    { "name": "My Lessons", "url": "/books" }
+  ]
+}
