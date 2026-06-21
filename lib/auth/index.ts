@@ -51,11 +51,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         
         // Fetch onboarding status once on initial sign in
         try {
-          const profile = await db.query.profiles.findFirst({
-            where: eq(schema.profiles.id, user.id),
-            columns: { onboardingCompleted: true },
-          });
-          token.onboardingCompleted = profile ? profile.onboardingCompleted : false;
+          if (user.id) {
+            const profile = await db.query.profiles.findFirst({
+              where: eq(schema.profiles.id, user.id),
+              columns: { onboardingCompleted: true },
+            });
+            token.onboardingCompleted = profile ? profile.onboardingCompleted : false;
+          } else {
+            token.onboardingCompleted = false;
+          }
         } catch (err) {
           console.error('Error fetching profile in JWT callback:', err);
           token.onboardingCompleted = false;
