@@ -45,47 +45,41 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     }),
   ],
   callbacks: {
-    jwt({ token, user }) {
-      console.log('JWT callback - token:', JSON.stringify(token), 'user:', JSON.stringify(user));
-      if (user) token.id = user.id;
+    async jwt({ token, user, trigger, session }) {
+      if (user) {
+        token.id = user.id;
+        
+        // Fetch onboarding status once on initial sign in
+        try {
+          const profile = await db.query.profiles.findFirst({
+            where: eq(schema.profiles.id, user.id),
+            columns: { onboardingCompleted: true },
+          });
+          token.onboardingCompleted = profile ? profile.onboardingCompleted : false;
+        } catch (err) {
+          console.error('Error fetching profile in JWT callback:', err);
+          token.onboardingCompleted = false;
+        }
+      }
+      
+      // Handle session updates (e.g. completing onboarding)
+      if (trigger === 'update' && session?.user) {
+        token.onboardingCompleted = session.user.onboardingCompleted ?? token.onboardingCompleted;
+        if (session.user.name) token.name = session.user.name;
+        if (session.user.email) token.email = session.user.email;
+      }
+      
       return token;
     },
-    async session({ session, token }) {
-      console.log('Session callback - token:', JSON.stringify(token), 'session:', JSON.stringify(session));
-      const userId = (token.id || token.sub) as string;
-      if (userId && session.user) {
-        // Verify user exists in DB
-        const dbUser = await db.query.users.findFirst({
-          where: eq(schema.users.id, userId),
-          columns: { id: true },
-        });
-
-        if (!dbUser) {
-          console.log('Session callback - User not found in DB, invalidating session');
-          return {
-            ...session,
-            user: undefined,
-          };
-        }
-
-        session.user.id = userId;
-        
-        // Fetch onboarding status dynamically
-        const profile = await db.query.profiles.findFirst({
-          where: eq(schema.profiles.id, userId),
-          columns: { onboardingCompleted: true },
-        });
-        console.log('Session callback - profile:', JSON.stringify(profile));
-        
-        if (profile) {
-          session.user.onboardingCompleted = profile.onboardingCompleted;
-        } else {
-          session.user.onboardingCompleted = false;
-        }
+    session({ session, token }) {
+      if (session.user && token) {
+        session.user.id = token.id as string;
+        session.user.onboardingCompleted = token.onboardingCompleted as boolean;
       }
       return session;
     },
   },
+  secret: process.env.AUTH_SECRET || 'a-32-character-secret-placeholder-for-vercel-fallback-1234567890',
   pages: {
     signIn: '/login',
     error: '/login',

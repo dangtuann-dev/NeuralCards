@@ -25,14 +25,28 @@ export async function completeOnboarding(data: z.infer<typeof onboardingSchema>)
   try {
     const validated = onboardingSchema.parse(data);
     
-    // Update profile
-    await db.update(profiles).set({
+    // Upsert profile (handles credentials users having profile and OAuth users who don't have profile yet)
+    await db.insert(profiles).values({
+      id: userId,
       dailyGoal: validated.dailyGoal,
       studyPreference: validated.studyPreference,
       preferredLanguage: validated.preferredLanguage,
       onboardingCompleted: true,
+      streakDays: 0,
+      longestStreak: 0,
+      totalWordsLearned: 0,
+      totalXp: 0,
       updatedAt: new Date(),
-    }).where(eq(profiles.id, userId));
+    }).onConflictDoUpdate({
+      target: profiles.id,
+      set: {
+        dailyGoal: validated.dailyGoal,
+        studyPreference: validated.studyPreference,
+        preferredLanguage: validated.preferredLanguage,
+        onboardingCompleted: true,
+        updatedAt: new Date(),
+      }
+    });
     
     // Ensure the welcome badge exists
     await db.insert(badges).values({
