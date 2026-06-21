@@ -210,3 +210,61 @@ export async function submitCardReview(progressId: string, wordId: string, ratin
     return { success: false, error: error.message || 'Lỗi khi lưu kết quả ôn tập' };
   }
 }
+
+export async function recordGamePlay(gameType: 'matching' | 'speed_round' | 'spelling' | 'fill_blank', score: number, xpEarned: number) {
+  const session = await auth();
+  if (!session?.user?.id) return { success: false, error: 'Unauthorized' };
+  const userId = session.user.id;
+
+  try {
+    const profile = await db.query.profiles.findFirst({
+      where: eq(profiles.id, userId),
+    });
+
+    if (profile) {
+      let newStreak = profile.streakDays;
+      const today = new Date();
+      today.setHours(0,0,0,0);
+      
+      if (profile.lastStudiedAt) {
+        const lastStudied = new Date(profile.lastStudiedAt);
+        lastStudied.setHours(0,0,0,0);
+        const diffTime = today.getTime() - lastStudied.getTime();
+        const diffDays = diffTime / (1000 * 60 * 60 * 24);
+        
+        if (diffDays === 1) {
+          newStreak = profile.streakDays + 1;
+        } else if (diffDays > 1) {
+          newStreak = 1;
+        }
+      } else {
+        newStreak = 1;
+      }
+
+      await db.update(profiles).set({
+        totalXp: profile.totalXp + xpEarned,
+        streakDays: newStreak,
+        longestStreak: Math.max(profile.longestStreak, newStreak),
+        lastStudiedAt: new Date(),
+        updatedAt: new Date(),
+      }).where(eq(profiles.id, userId));
+    }
+
+    await db.insert(studySessions).values({
+      userId,
+      gameType,
+      score,
+      totalQuestions: 10,
+      correctAnswers: Math.round(score / 10),
+      timeTakenSeconds: 30,
+      xpEarned,
+    });
+
+    revalidatePath('/dashboard');
+    revalidatePath('/leaderboard');
+    return { success: true, xpEarned };
+  } catch (error: any) {
+    return { success: false, error: error.message || 'Lỗi khi lưu kết quả game' };
+  }
+}
+

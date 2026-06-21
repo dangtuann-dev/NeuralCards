@@ -1,33 +1,62 @@
+import { db } from '@/lib/db';
+import { words, lessons } from '@/lib/db/schema';
+import { eq } from 'drizzle-orm';
+import { auth } from '@/lib/auth';
+import GamesClient from './GamesClient';
+
 export const metadata = { title: 'Mini-games — NeuralCards' };
 
-const GAMES = [
-  { id: 'matching', title: 'Ghép cặp từ', desc: 'Nối từ tiếng Anh với định nghĩa nhanh nhất có thể', emoji: '🔗', color: 'from-violet-500 to-purple-600' },
-  { id: 'spelling', title: 'Đánh vần', desc: 'Nghe và đánh vần chính xác từ vựng IELTS', emoji: '🎤', color: 'from-blue-500 to-indigo-600' },
-  { id: 'fill_blank', title: 'Điền vào chỗ trống', desc: 'Hoàn thành câu với từ vựng phù hợp', emoji: '✏️', color: 'from-emerald-500 to-teal-600' },
-  { id: 'speed', title: 'Speed Round', desc: 'Trả lời đúng càng nhiều từ càng tốt trong 60 giây', emoji: '⚡', color: 'from-amber-500 to-orange-500' },
+const FALLBACK_WORDS = [
+  { id: 'fb-1', term: 'meticulous', phonetic: '/mɪˈtɪkjələs/', partOfSpeech: 'adjective', definition: 'very careful and precise', definitionVi: 'tỉ mỉ, kỹ càng', exampleSentence: 'He was meticulous in his work.', exampleSentenceVi: 'Anh ấy rất tỉ mỉ trong công việc.' },
+  { id: 'fb-2', term: 'ambiguous', phonetic: '/æmˈbɪɡjuəs/', partOfSpeech: 'adjective', definition: 'unclear or double-meaning', definitionVi: 'mơ hồ, nhập nhằng', exampleSentence: 'The instructions were ambiguous.', exampleSentenceVi: 'Các hướng dẫn rất mơ hồ.' },
+  { id: 'fb-3', term: 'pragmatic', phonetic: '/præɡˈmætɪk/', partOfSpeech: 'adjective', definition: 'practical and realistic', definitionVi: 'thực tế, thực dụng', exampleSentence: 'We need a pragmatic solution.', exampleSentenceVi: 'Chúng ta cần một giải pháp thực tế.' },
+  { id: 'fb-4', term: 'redundant', phonetic: '/rɪˈdʌndənt/', partOfSpeech: 'adjective', definition: 'no longer needed or useful', definitionVi: 'dư thừa, không cần thiết', exampleSentence: 'The extra features are redundant.', exampleSentenceVi: 'Các tính năng phụ là dư thừa.' },
+  { id: 'fb-5', term: 'subtle', phonetic: '/ˈsʌt.əl/', partOfSpeech: 'adjective', definition: 'not loud, bright, or noticeable', definitionVi: 'tinh tế, tế nhị', exampleSentence: 'There is a subtle difference.', exampleSentenceVi: 'Có một sự khác biệt tinh tế.' },
+  { id: 'fb-6', term: 'corroborate', phonetic: '/kəˈrɒb.ə.reɪt/', partOfSpeech: 'verb', definition: 'confirm or give support to', definitionVi: 'xác minh, chứng thực', exampleSentence: 'The witness corroborated his story.', exampleSentenceVi: 'Nhân chứng đã chứng thực câu chuyện của anh ta.' },
+  { id: 'fb-7', term: 'scrutinize', phonetic: '/ˈskruː.tɪ.naɪz/', partOfSpeech: 'verb', definition: 'examine closely and thoroughly', definitionVi: 'xem xét kỹ lưỡng', exampleSentence: 'Customers scrutinize the details.', exampleSentenceVi: 'Khách hàng xem xét kỹ lưỡng các chi tiết.' },
+  { id: 'fb-8', term: 'benevolent', phonetic: '/bəˈnev.əl.ənt/', partOfSpeech: 'adjective', definition: 'well meaning and kindly', definitionVi: 'nhân từ, rộng lượng', exampleSentence: 'He was a benevolent ruler.', exampleSentenceVi: 'Ông ấy là một nhà cai trị nhân từ.' }
 ];
 
-export default function GamesPage() {
-  return (
-    <div className="p-8 max-w-4xl mx-auto">
-      <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white font-heading mb-2">
-        Mini-games
-      </h1>
-      <p className="text-slate-500 dark:text-slate-400 mb-8">
-        Học từ vựng IELTS theo cách thú vị với các trò chơi tương tác.
-      </p>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-        {GAMES.map((g) => (
-          <div
-            key={g.id}
-            className={`bg-gradient-to-br ${g.color} rounded-2xl p-6 text-white shadow-md cursor-pointer hover:shadow-xl hover:-translate-y-1 transition-all`}
-          >
-            <div className="text-4xl mb-3">{g.emoji}</div>
-            <h2 className="text-xl font-bold mb-1">{g.title}</h2>
-            <p className="text-white/80 text-sm">{g.desc}</p>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
+interface GameWord {
+  id: string;
+  term: string;
+  phonetic: string | null;
+  partOfSpeech: string | null;
+  definition: string;
+  definitionVi: string | null;
+  exampleSentence: string | null;
+  exampleSentenceVi: string | null;
+}
+
+export default async function GamesPage() {
+  const session = await auth();
+  const userId = session?.user?.id;
+
+  let userWords: GameWord[] = [];
+
+  if (userId) {
+    try {
+      userWords = await db
+        .select({
+          id: words.id,
+          term: words.term,
+          phonetic: words.phonetic,
+          partOfSpeech: words.partOfSpeech,
+          definition: words.definition,
+          definitionVi: words.definitionVi,
+          exampleSentence: words.exampleSentence,
+          exampleSentenceVi: words.exampleSentenceVi,
+        })
+        .from(words)
+        .innerJoin(lessons, eq(words.lessonId, lessons.id))
+        .where(eq(lessons.userId, userId));
+    } catch (err) {
+      console.error('Failed to load user words for games:', err);
+    }
+  }
+
+  // Fallback if the user has too few cards to play games
+  const finalWordsList = userWords.length >= 4 ? userWords : FALLBACK_WORDS;
+
+  return <GamesClient userWords={finalWordsList} />;
 }
