@@ -229,13 +229,28 @@ Return ONLY the raw JSON object, without markdown formatting or code blocks.`,
       }
     }
 
+    let definitionVi = '';
+    let isDirectTranslation = false;
+
+    // Third try: Google Translate direct translation if no dictionary definition is found
+    if (!definition) {
+      const translation = await translateToVi(trimmedWord);
+      if (translation && translation.toLowerCase() !== trimmedWord.toLowerCase()) {
+        definition = `Translation of "${trimmedWord}"`;
+        definitionVi = translation;
+        isDirectTranslation = true;
+      }
+    }
+
     if (!definition) {
       return { success: false, error: 'Không tìm thấy định nghĩa cho từ/cụm từ này' };
     }
 
     const isMultiWord = trimmedWord.split(/\s+/).length > 1;
     let partOfSpeech = mapPartOfSpeech(partOfSpeechRaw);
-    if (isMultiWord) {
+    if (isDirectTranslation) {
+      partOfSpeech = isMultiWord ? 'phrase' : 'other';
+    } else if (isMultiWord) {
       if (partOfSpeechRaw.toLowerCase().includes('idiom')) {
         partOfSpeech = 'idiom';
       } else if (partOfSpeechRaw.toLowerCase().includes('phrase')) {
@@ -245,7 +260,9 @@ Return ONLY the raw JSON object, without markdown formatting or code blocks.`,
       }
     }
 
-    const definitionVi = definition ? await translateToVi(definition) : '';
+    if (!isDirectTranslation) {
+      definitionVi = definition ? await translateToVi(definition) : '';
+    }
     const exampleSentenceVi = exampleSentence ? await translateToVi(exampleSentence) : '';
 
     return {
