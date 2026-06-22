@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, BookOpen, X, ArrowRight, Loader2, Edit2, Trash2 } from 'lucide-react';
 import { createDeck, updateDeck, deleteDeck } from '@/actions/books';
 import { toast } from 'sonner';
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 
 interface Deck {
   id: string;
@@ -187,9 +188,16 @@ export default function BooksClient({ decks }: BooksClientProps) {
                     </div>
                   </div>
 
-                  <h3 className="font-extrabold text-slate-900 dark:text-white group-hover:text-black dark:group-hover:text-slate-100 transition-colors line-clamp-1">
-                    {deck.title}
-                  </h3>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <h3 className="font-extrabold text-slate-900 dark:text-white group-hover:text-black dark:group-hover:text-slate-100 transition-colors line-clamp-1">
+                        {deck.title}
+                      </h3>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p className="max-w-xs break-words font-semibold">{deck.title}</p>
+                    </TooltipContent>
+                  </Tooltip>
                   <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5 line-clamp-2 min-h-[2.5rem]">
                     {deck.description || 'Không có mô tả.'}
                   </p>
