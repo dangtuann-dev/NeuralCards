@@ -6,6 +6,7 @@ import { auth } from '@/lib/auth';
 import { eq, and } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
+import Anthropic from '@anthropic-ai/sdk';
 
 const deckSchema = z.object({
   title: z.string().min(2, 'Tên bộ từ phải từ 2 ký tự trở lên'),
@@ -132,38 +133,119 @@ function mapPartOfSpeech(pos: string): 'noun'|'verb'|'adjective'|'adverb'|'phras
 }
 
 export async function lookupWord(word: string) {
-  if (!word || !word.trim()) {
+  const trimmedWord = word ? word.trim() : '';
+  if (!trimmedWord) {
     return { success: false, error: 'Từ vựng không hợp lệ' };
   }
 
+  // 1. Try Anthropic AI if API key is present and valid (not dummy)
+  const anthropicApiKey = process.env.ANTHROPIC_API_KEY;
+  if (anthropicApiKey && anthropicApiKey !== 'dummy-anthropic-api-key' && anthropicApiKey.trim() !== '') {
+    try {
+      const anthropic = new Anthropic({ apiKey: anthropicApiKey });
+      const response = await anthropic.messages.create({
+        model: 'claude-3-haiku-20240307',
+        max_tokens: 1000,
+        messages: [
+          {
+            role: 'user',
+            content: `You are a dictionary assistant. Provide details for the English term: "${trimmedWord}".
+Format the response as a JSON object with the following fields:
+{
+  "phonetic": "IPA phonetic transcription, e.g. /ˈɪntrɪkɪt/ (leave empty if not applicable or multi-word)",
+  "partOfSpeech": "one of: 'noun', 'verb', 'adjective', 'adverb', 'phrase', 'idiom', 'collocation', 'other'",
+  "definition": "Clear, concise English definition",
+  "definitionVi": "Vietnamese translation of the definition",
+  "exampleSentence": "A natural English example sentence using the term",
+  "exampleSentenceVi": "Vietnamese translation of the example sentence"
+}
+Return ONLY the raw JSON object, without markdown formatting or code blocks.`,
+          },
+        ],
+      });
+
+      const text = response.content[0].type === 'text' ? response.content[0].text : '';
+      if (text) {
+        const cleanedText = text.replace(/```json/g, '').replace(/```/g, '').trim();
+        const parsed = JSON.parse(cleanedText);
+        
+        return {
+          success: true,
+          data: {
+            phonetic: parsed.phonetic || '',
+            partOfSpeech: mapPartOfSpeech(parsed.partOfSpeech || 'noun'),
+            definition: parsed.definition || '',
+            definitionVi: parsed.definitionVi || '',
+            exampleSentence: parsed.exampleSentence || '',
+            exampleSentenceVi: parsed.exampleSentenceVi || '',
+          }
+        };
+      }
+    } catch (aiError: any) {
+      console.error('Anthropic API error, falling back to keyless dictionary:', aiError.message);
+    }
+  }
+
+  // 2. Keyless Fallback API Chain
   try {
-    const res = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word.trim().toLowerCase())}`);
-    if (!res.ok) {
-      return { success: false, error: 'Không tìm thấy định nghĩa cho từ này' };
+    let phonetic = '';
+    let partOfSpeechRaw = 'noun';
+    let definition = '';
+    let exampleSentence = '';
+
+    // First try: dictionaryapi.dev
+    const dictRes = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(trimmedWord.toLowerCase())}`);
+    if (dictRes.ok) {
+      const data = await dictRes.json();
+      if (Array.isArray(data) && data.length > 0) {
+        const entry = data[0];
+        phonetic = entry.phonetic || (entry.phonetics && entry.phonetics.find((p: any) => p.text)?.text) || '';
+        const meaning = entry.meanings?.[0];
+        partOfSpeechRaw = meaning?.partOfSpeech || 'noun';
+        const definitionObj = meaning?.definitions?.[0];
+        definition = definitionObj?.definition || '';
+        exampleSentence = definitionObj?.example || '';
+      }
     }
 
-    const data = await res.json();
-    if (!Array.isArray(data) || data.length === 0) {
-      return { success: false, error: 'Không tìm thấy định nghĩa cho từ này' };
+    // Second try: Wiktionary REST API if first try failed or returned no definition
+    if (!definition) {
+      const wiktionaryTerm = trimmedWord.replace(/\s+/g, '_');
+      const wiktionaryRes = await fetch(`https://en.wiktionary.org/api/rest_v1/page/definition/${encodeURIComponent(wiktionaryTerm)}`);
+      
+      if (wiktionaryRes.ok) {
+        const data = await wiktionaryRes.json();
+        if (data && data.en && data.en.length > 0) {
+          const entry = data.en[0];
+          partOfSpeechRaw = entry.partOfSpeech || 'other';
+          const definitionObj = entry.definitions?.[0];
+          
+          const definitionHtml = definitionObj?.definition || '';
+          definition = definitionHtml.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
+          
+          const exampleHtml = definitionObj?.examples?.[0] || '';
+          exampleSentence = exampleHtml.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
+        }
+      }
     }
 
-    const entry = data[0];
-    const phonetic = entry.phonetic || (entry.phonetics && entry.phonetics.find((p: any) => p.text)?.text) || '';
+    if (!definition) {
+      return { success: false, error: 'Không tìm thấy định nghĩa cho từ/cụm từ này' };
+    }
 
-    // Find the first meaning
-    const meaning = entry.meanings?.[0];
-    const partOfSpeechRaw = meaning?.partOfSpeech || 'noun';
-    const partOfSpeech = mapPartOfSpeech(partOfSpeechRaw);
+    const isMultiWord = trimmedWord.split(/\s+/).length > 1;
+    let partOfSpeech = mapPartOfSpeech(partOfSpeechRaw);
+    if (isMultiWord) {
+      if (partOfSpeechRaw.toLowerCase().includes('idiom')) {
+        partOfSpeech = 'idiom';
+      } else if (partOfSpeechRaw.toLowerCase().includes('phrase')) {
+        partOfSpeech = 'phrase';
+      } else if (partOfSpeech === 'other' || partOfSpeech === 'noun') {
+        partOfSpeech = 'phrase';
+      }
+    }
 
-    // Find definition and example
-    const definitionObj = meaning?.definitions?.[0];
-    const definition = definitionObj?.definition || '';
-    const exampleSentence = definitionObj?.example || '';
-
-    // Translate English definition to Vietnamese
     const definitionVi = definition ? await translateToVi(definition) : '';
-
-    // Translate English example to Vietnamese
     const exampleSentenceVi = exampleSentence ? await translateToVi(exampleSentence) : '';
 
     return {
